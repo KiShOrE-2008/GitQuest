@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Trophy, School, Sparkles, UserCheck } from 'lucide-react';
+import { Trophy, School, Sparkles } from 'lucide-react';
 
 interface LeaderboardViewProps {
   userProfile: {
@@ -21,20 +21,20 @@ interface LeaderboardEntry {
 }
 
 const GLOBAL_LEADERBOARD: LeaderboardEntry[] = [
-  { rank: 1, name: 'LinusMaster', avatarEmoji: '🧙‍♂️', avatarTitle: 'Merge Wizard', xp: 4850, level: 12 },
-  { rank: 2, name: 'Alice_git', avatarEmoji: '🥷', avatarTitle: 'Rebase Ninja', xp: 3900, level: 10 },
-  { rank: 3, name: 'CommitKing', avatarEmoji: '👑', avatarTitle: 'Git Master', xp: 3250, level: 8 },
-  { rank: 4, name: 'DevOps_Pro', avatarEmoji: '🧑‍💻', avatarTitle: 'Code Cadet', xp: 2600, level: 7 },
-  { rank: 5, name: 'Branching_Queen', avatarEmoji: '🥷', avatarTitle: 'Rebase Ninja', xp: 2150, level: 6 },
-  { rank: 6, name: 'MergeWizard99', avatarEmoji: '🧙‍♂️', avatarTitle: 'Merge Wizard', xp: 1800, level: 5 },
+  { rank: 1, name: 'LINUS_MASTER', avatarEmoji: '🧙‍♂️', avatarTitle: 'Merge Wizard', xp: 4850, level: 12 },
+  { rank: 2, name: 'ALICE_GIT', avatarEmoji: '🥷', avatarTitle: 'Rebase Ninja', xp: 3900, level: 10 },
+  { rank: 3, name: 'COMMIT_KING', avatarEmoji: '👑', avatarTitle: 'Git Master', xp: 3250, level: 8 },
+  { rank: 4, name: 'DEVOPS_PRO', avatarEmoji: '🧑‍💻', avatarTitle: 'Code Cadet', xp: 2600, level: 7 },
+  { rank: 5, name: 'BRANCH_QUEEN', avatarEmoji: '🥷', avatarTitle: 'Rebase Ninja', xp: 2150, level: 6 },
+  { rank: 6, name: 'MERGE_WIZ_99', avatarEmoji: '🧙‍♂️', avatarTitle: 'Merge Wizard', xp: 1800, level: 5 },
 ];
 
 const COLLEGE_LEADERBOARD: LeaderboardEntry[] = [
-  { rank: 1, name: 'CampusCoder', avatarEmoji: '🧑‍💻', avatarTitle: 'Code Cadet', xp: 2200, level: 6 },
-  { rank: 2, name: 'Prof_Git', avatarEmoji: '👑', avatarTitle: 'Git Master', xp: 1950, level: 5 },
-  { rank: 3, name: 'Hackathon_Beast', avatarEmoji: '🥷', avatarTitle: 'Rebase Ninja', xp: 1750, level: 5 },
-  { rank: 4, name: 'CodeSlayer', avatarEmoji: '🧑‍💻', avatarTitle: 'Code Cadet', xp: 1400, level: 4 },
-  { rank: 5, name: 'VCS_Newbie', avatarEmoji: '🧑‍💻', avatarTitle: 'Code Cadet', xp: 850, level: 3 },
+  { rank: 1, name: 'CAMPUS_CODER', avatarEmoji: '🧑‍💻', avatarTitle: 'Code Cadet', xp: 2200, level: 6 },
+  { rank: 2, name: 'PROF_GIT', avatarEmoji: '👑', avatarTitle: 'Git Master', xp: 1950, level: 5 },
+  { rank: 3, name: 'HACK_BEAST', avatarEmoji: '🥷', avatarTitle: 'Rebase Ninja', xp: 1750, level: 5 },
+  { rank: 4, name: 'CODE_SLAYER', avatarEmoji: '🧑‍💻', avatarTitle: 'Code Cadet', xp: 1400, level: 4 },
+  { rank: 5, name: 'VCS_NEWBIE', avatarEmoji: '🧑‍💻', avatarTitle: 'Code Cadet', xp: 850, level: 3 },
 ];
 
 export const LeaderboardView: React.FC<LeaderboardViewProps> = ({ userProfile }) => {
@@ -42,10 +42,10 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({ userProfile })
 
   const getRankBadgeColor = (rank: number) => {
     switch (rank) {
-      case 1: return 'bg-amber-500/10 border-amber-500 text-amber-500';
-      case 2: return 'bg-slate-400/10 border-slate-400 text-slate-400';
-      case 3: return 'bg-amber-700/10 border-amber-700 text-amber-700';
-      default: return 'bg-slate-900 border-slate-800 text-gray-400';
+      case 1: return 'border-amber-500 text-amber-500 bg-amber-950/20';
+      case 2: return 'border-slate-400 text-slate-400 bg-slate-900/40';
+      case 3: return 'border-amber-700 text-amber-700 bg-amber-950/10';
+      default: return 'border-slate-800 text-gray-500 bg-slate-950';
     }
   };
 
@@ -59,13 +59,11 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({ userProfile })
     }
   };
 
-  // Compile full leaderboard, inserting user
   const rawLeaderboard = activeTab === 'global' ? GLOBAL_LEADERBOARD : COLLEGE_LEADERBOARD;
   
-  // Find where user fits in
   const userEntry: LeaderboardEntry = {
-    rank: 0, // calculated later
-    name: `${userProfile.name} (You)`,
+    rank: 0,
+    name: `${userProfile.name.toUpperCase()} (YOU)`,
     avatarEmoji: getAvatarEmoji(userProfile.avatar),
     avatarTitle: userProfile.avatar,
     xp: userProfile.xp,
@@ -84,103 +82,103 @@ export const LeaderboardView: React.FC<LeaderboardViewProps> = ({ userProfile })
     <div className="max-w-4xl mx-auto space-y-6 text-brand-text">
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-3xl font-bold flex items-center gap-2">
-            <Trophy className="text-amber-500" />
-            <span>Leaderboards</span>
+        <div className="font-arcade text-left">
+          <h2 className="text-xl font-bold text-pink-400 flex items-center gap-2">
+            <Trophy className="text-pink-500" />
+            <span>HI-SCORES HALL OF FAME</span>
           </h2>
-          <p className="text-gray-400 text-sm mt-1">
-            Compare your scores and rank with developers around the globe and in your college.
+          <p className="text-cyan-400 font-pixel text-[16px] mt-1 normal-case">
+            Verify who is dominating the local and campus repository rankings.
           </p>
         </div>
 
         {/* Tab Toggle */}
-        <div className="flex items-center gap-1.5 p-1 bg-slate-950 rounded-xl border border-slate-800 self-start">
+        <div className="flex items-center gap-2 p-1 bg-slate-950 border-2 border-slate-900 self-start font-arcade text-[8px]">
           <button
             onClick={() => setActiveTab('global')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+            className={`flex items-center gap-2 px-3 py-1.5 border transition-all ${
               activeTab === 'global'
-                ? 'bg-purple-600 text-white'
-                : 'text-gray-400 hover:text-white'
+                ? 'bg-pink-600 border-pink-400 text-white'
+                : 'border-transparent text-gray-500 hover:text-white'
             }`}
           >
-            <Sparkles size={16} />
-            <span>Global Ranks</span>
+            <Sparkles size={10} />
+            <span>GLOBAL</span>
           </button>
           <button
             onClick={() => setActiveTab('college')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+            className={`flex items-center gap-2 px-3 py-1.5 border transition-all ${
               activeTab === 'college'
-                ? 'bg-purple-600 text-white'
-                : 'text-gray-400 hover:text-white'
+                ? 'bg-pink-600 border-pink-400 text-white'
+                : 'border-transparent text-gray-500 hover:text-white'
             }`}
           >
-            <School size={16} />
-            <span>College Campus</span>
+            <School size={10} />
+            <span>CAMPUS</span>
           </button>
         </div>
       </div>
 
       {/* Leaderboard Table Card */}
-      <div className="bg-brand-panel border border-brand-border rounded-2xl backdrop-blur-xl overflow-hidden shadow-2xl">
-        <div className="p-6 border-b border-brand-border bg-slate-950/20 flex items-center justify-between">
-          <span className="font-bold">Ranks Ladder</span>
-          <span className="text-xs text-gray-500 uppercase tracking-widest font-semibold">
-            Resets Weekly
+      <div className="arcade-panel rounded-none overflow-hidden shadow-2xl">
+        <div className="p-4 border-b-2 border-pink-500/20 bg-slate-950/40 flex items-center justify-between font-arcade text-[10px]">
+          <span className="font-bold text-cyan-400">HI-SCORE LADDER</span>
+          <span className="text-[7px] text-pink-500 uppercase tracking-widest font-extrabold arcade-blink">
+            LIVE SYNCING
           </span>
         </div>
 
-        <div className="divide-y divide-brand-border">
+        <div className="divide-y-2 divide-pink-500/10 font-arcade text-[10px]">
           {completeLeaderboard.map((player) => (
             <div
               key={player.name}
               className={`flex items-center justify-between p-4 px-6 transition-all ${
                 player.isCurrentUser
-                  ? 'bg-purple-950/25 border-l-4 border-l-purple-500'
+                  ? 'bg-pink-950/20 border-l-4 border-l-pink-500'
                   : 'hover:bg-slate-900/10'
               }`}
             >
               {/* Left Rank & User details */}
               <div className="flex items-center gap-4">
                 <div
-                  className={`w-8 h-8 rounded-lg border flex items-center justify-center font-bold text-sm leading-none ${getRankBadgeColor(
+                  className={`w-7 h-7 border-2 flex items-center justify-center font-bold text-[9px] leading-none ${getRankBadgeColor(
                     player.rank
                   )}`}
                 >
                   {player.rank}
                 </div>
 
-                <div className="w-10 h-10 rounded-full bg-slate-950 border border-slate-800 flex items-center justify-center text-xl shadow-inner">
+                <div className="w-9 h-9 bg-slate-950 border border-slate-800 flex items-center justify-center text-xl shrink-0">
                   {player.avatarEmoji}
                 </div>
 
                 <div className="text-left">
-                  <div className="font-bold flex items-center gap-2 text-sm md:text-base">
+                  <div className="font-bold flex items-center gap-2 text-xs md:text-sm text-white">
                     <span>{player.name}</span>
                     {player.isCurrentUser && (
-                      <span className="text-[10px] bg-purple-500/25 border border-purple-500/40 text-purple-400 px-2 py-0.5 rounded font-semibold uppercase tracking-widest flex items-center gap-1">
-                        <UserCheck size={8} /> You
+                      <span className="text-[6px] bg-pink-950/40 border border-pink-500 text-pink-400 px-1.5 py-0.5 rounded-none font-bold tracking-wider">
+                        YOU
                       </span>
                     )}
                   </div>
-                  <div className="text-xs text-gray-400">{player.avatarTitle}</div>
+                  <div className="text-[8px] text-cyan-700 tracking-wider uppercase mt-0.5">{player.avatarTitle}</div>
                 </div>
               </div>
 
               {/* Right Level & XP details */}
-              <div className="flex items-center gap-8">
+              <div className="flex items-center gap-6">
                 <div className="hidden sm:block text-right">
-                  <span className="text-xs text-gray-500 font-semibold uppercase tracking-widest block">
-                    Level
+                  <span className="text-[7px] text-gray-500 font-bold uppercase tracking-wider block">
+                    STAGE
                   </span>
-                  <span className="font-bold text-purple-400">{player.level}</span>
+                  <span className="font-bold text-pink-400">{player.level}</span>
                 </div>
                 <div className="text-right">
-                  <span className="text-xs text-gray-500 font-semibold uppercase tracking-widest block">
-                    Score
+                  <span className="text-[7px] text-gray-500 font-bold uppercase tracking-wider block">
+                    SCORE
                   </span>
-                  <span className="font-extrabold text-brand-text tracking-wide">
-                    {player.xp} <span className="text-purple-400 text-xs font-bold">XP</span>
+                  <span className="font-extrabold text-cyan-400">
+                    {player.xp} <span className="text-[8px] font-bold text-pink-500">PTS</span>
                   </span>
                 </div>
               </div>

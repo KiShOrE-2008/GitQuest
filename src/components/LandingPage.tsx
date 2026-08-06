@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
-import { Terminal, Award, Zap, Code } from 'lucide-react';
+import { Terminal, Trophy, Zap } from 'lucide-react';
 
 interface LandingPageProps {
   onStart: (name: string, avatar: string) => void;
 }
 
 const AVATARS = [
-  { name: 'Code Cadet', emoji: '🧑‍💻', color: 'from-blue-500 to-indigo-500' },
-  { name: 'Rebase Ninja', emoji: '🥷', color: 'from-purple-600 to-pink-600' },
-  { name: 'Merge Wizard', emoji: '🧙‍♂️', color: 'from-emerald-500 to-teal-500' },
-  { name: 'Git Master', emoji: '👑', color: 'from-amber-500 to-orange-500' },
+  { name: 'Code Cadet', emoji: '🧑‍💻', color: 'bg-blue-600 border-blue-400' },
+  { name: 'Rebase Ninja', emoji: '🥷', color: 'bg-pink-600 border-pink-400' },
+  { name: 'Merge Wizard', emoji: '🧙‍♂️', color: 'bg-emerald-600 border-emerald-400' },
+  { name: 'Git Master', emoji: '👑', color: 'bg-amber-600 border-amber-400' },
 ];
 
 export const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
@@ -23,41 +23,43 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
   };
 
   return (
-    <div className="min-h-screen bg-brand-bg bg-grid-pattern flex flex-col items-center justify-center p-6 text-brand-text">
-      {/* Background radial glow */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-900/20 rounded-full blur-3xl pointer-events-none"></div>
+    <div className="min-h-screen bg-brand-bg bg-grid-pattern crt-effect flex flex-col items-center justify-center p-6 text-brand-text">
+      {/* Curved CRT reflection */}
+      <div className="absolute inset-0 bg-radial-[circle_at_center,rgba(236,72,153,0.03)_0%,transparent_70%] pointer-events-none"></div>
 
-      <div className="max-w-2xl w-full text-center mb-8 relative z-10">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-purple-500/30 bg-purple-500/10 text-purple-400 text-sm mb-4 backdrop-blur-md">
-          <Terminal size={14} />
-          <span>Interactive Simulation & Gamification</span>
+      <div className="max-w-2xl w-full text-center mb-8 relative z-10 space-y-4">
+        {/* Blinking start indicator */}
+        <div className="inline-block text-xs font-arcade text-pink-500 bg-pink-950/40 border-2 border-pink-500 px-4 py-1.5 rounded-none uppercase tracking-widest arcade-blink glow-pink-text">
+          INSERT COIN TO PLAY
         </div>
-        <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight mb-2 bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent">
-          GitQuest
+
+        <h1 className="text-6xl md:text-7xl font-extrabold tracking-widest font-arcade mb-2 bg-gradient-to-b from-yellow-300 via-pink-500 to-purple-600 bg-clip-text text-transparent filter drop-shadow-[0_4px_8px_rgba(236,72,153,0.4)]">
+          GITQUEST
         </h1>
-        <p className="text-gray-400 text-lg md:text-xl max-w-xl mx-auto">
-          Master Git and GitHub internals through interactive simulations, story-driven missions, and battles.
+        <p className="text-cyan-400 text-lg md:text-2xl font-pixel max-w-xl mx-auto uppercase tracking-wide glow-cyan-text">
+          Master Git Internals in 8-Bit Retro Simulation
         </p>
       </div>
 
-      <div className="max-w-md w-full bg-brand-panel border border-brand-border rounded-2xl p-8 backdrop-blur-xl shadow-2xl relative z-10">
-        <h2 className="text-2xl font-bold text-center mb-6">Create Your Profile</h2>
+      <div className="max-w-md w-full bg-slate-950/90 border-4 border-double border-pink-500 p-8 shadow-[0_0_20px_rgba(236,72,153,0.3)] relative z-10">
+        <h2 className="text-xl font-arcade text-center text-pink-400 mb-6 glow-pink-text">CREATE PROFILE</h2>
+        
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-400 mb-2">Username</label>
+          <div className="text-left">
+            <label className="block text-sm font-arcade text-cyan-400 mb-2">CODENAME ALIAS</label>
             <input
               type="text"
               required
-              maxLength={20}
-              placeholder="Enter your coder alias..."
+              maxLength={12}
+              placeholder="PLAYER_1"
               value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+              onChange={(e) => setName(e.target.value.toUpperCase())}
+              className="w-full bg-slate-950 border-2 border-cyan-500 rounded-none px-4 py-2.5 text-white font-mono text-sm focus:outline-none focus:border-pink-500 transition-all uppercase placeholder-cyan-900"
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-400 mb-3">Choose Your Title Avatar</label>
+          <div className="text-left">
+            <label className="block text-sm font-arcade text-cyan-400 mb-3">SELECT CHARACTER</label>
             <div className="grid grid-cols-2 gap-3">
               {AVATARS.map((avatar) => {
                 const isSelected = selectedAvatar === avatar.name;
@@ -66,18 +68,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
                     key={avatar.name}
                     type="button"
                     onClick={() => setSelectedAvatar(avatar.name)}
-                    className={`flex flex-col items-center justify-center p-4 rounded-xl border text-center transition-all ${
+                    className={`flex flex-col items-center justify-center p-3 border-2 transition-all ${
                       isSelected
-                        ? 'bg-slate-900 border-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.2)]'
-                        : 'bg-slate-950/60 border-slate-800 hover:border-slate-700'
+                        ? 'bg-pink-950/40 border-pink-500 shadow-[0_0_12px_rgba(236,72,153,0.3)] text-white'
+                        : 'bg-slate-950 border-slate-800 text-cyan-700 hover:border-slate-700'
                     }`}
                   >
                     <div
-                      className={`w-12 h-12 rounded-full bg-gradient-to-tr ${avatar.color} flex items-center justify-center text-2xl mb-2 shadow-lg`}
+                      className={`w-10 h-10 rounded-full border-2 ${avatar.color} flex items-center justify-center text-xl mb-1 shadow-md`}
                     >
                       {avatar.emoji}
                     </div>
-                    <span className="text-xs font-semibold">{avatar.name}</span>
+                    <span className="text-[9px] font-arcade tracking-wider">{avatar.name}</span>
                   </button>
                 );
               })}
@@ -87,29 +89,25 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onStart }) => {
           <button
             type="submit"
             disabled={!name.trim()}
-            className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 disabled:from-slate-800 disabled:to-slate-800 disabled:text-gray-600 text-white font-bold py-3.5 px-6 rounded-xl transition-all shadow-lg shadow-purple-900/30 flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98]"
+            className="w-full arcade-btn bg-pink-600 border-pink-400 hover:bg-pink-500 disabled:bg-slate-800 disabled:border-slate-700 disabled:text-gray-600 text-white font-bold py-3.5 px-6 rounded-none transition-all flex items-center justify-center gap-2 hover:scale-[1.01]"
           >
-            <Code size={18} />
-            <span>Enter the GitQuest</span>
+            <span>PRESS START</span>
           </button>
         </form>
       </div>
 
-      <div className="mt-12 grid grid-cols-3 gap-6 max-w-xl text-center text-sm text-gray-500 relative z-10">
+      <div className="mt-8 grid grid-cols-3 gap-6 max-w-xl text-center text-xs text-cyan-600 font-arcade relative z-10">
         <div className="flex flex-col items-center gap-1">
-          <Zap className="text-purple-500" size={20} />
-          <span className="font-semibold text-gray-400">Live Visualizer</span>
-          <span>Watch the Git DAG render in real-time</span>
+          <Zap className="text-pink-500 animate-pulse" size={16} />
+          <span className="text-[9px] text-pink-400">DAG TREE</span>
         </div>
         <div className="flex flex-col items-center gap-1">
-          <Terminal className="text-cyan-500" size={20} />
-          <span className="font-semibold text-gray-400">Interactive Terminal</span>
-          <span>Run real commands in a simulated index</span>
+          <Terminal className="text-cyan-500" size={16} />
+          <span className="text-[9px] text-cyan-400">8-BIT CLI</span>
         </div>
         <div className="flex flex-col items-center gap-1">
-          <Award className="text-amber-500" size={20} />
-          <span className="font-semibold text-gray-400">Earn Badges</span>
-          <span>Unlock developer roles and level up</span>
+          <Trophy className="text-amber-500" size={16} />
+          <span className="text-[9px] text-amber-400">HI-SCORES</span>
         </div>
       </div>
     </div>

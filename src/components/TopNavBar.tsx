@@ -26,50 +26,47 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({ userProfile, activeView, s
   };
 
   const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'simulator', label: 'Quest Arena', icon: Terminal },
-    { id: 'shop', label: 'Item Shop', icon: ShoppingBag },
-    { id: 'leaderboard', label: 'Leaderboards', icon: Trophy },
-    { id: 'profile', label: 'My Profile', icon: User },
+    { id: 'dashboard', label: 'MAP', icon: LayoutDashboard },
+    { id: 'simulator', label: 'ARENA', icon: Terminal },
+    { id: 'shop', label: 'SHOP', icon: ShoppingBag },
+    { id: 'leaderboard', label: 'HI-SCORES', icon: Trophy },
+    { id: 'profile', label: 'STATS', icon: User },
   ];
 
-  // Calculate XP threshold for next level (100 * level)
   const xpNeeded = userProfile.level * 150;
   const xpPercentage = Math.min(100, Math.floor((userProfile.xp / xpNeeded) * 100));
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-brand-panel border-b border-brand-border backdrop-blur-md px-6 py-3 flex items-center justify-between text-brand-text">
+    <header className="sticky top-0 z-50 w-full bg-[#120727] border-b-4 border-pink-500/80 px-6 py-3 flex items-center justify-between text-brand-text">
       {/* Brand Logo */}
       <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveView('dashboard')}>
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-indigo-600 flex items-center justify-center text-xl font-bold shadow-lg shadow-purple-900/30 text-white">
-          G
+        <div className="w-9 h-9 border-2 border-pink-500 bg-pink-600 flex items-center justify-center font-arcade text-lg font-bold text-white shadow-[0_0_8px_rgba(236,72,153,0.4)]">
+          GQ
         </div>
-        <div>
-          <span className="text-lg font-bold tracking-wider bg-gradient-to-r from-purple-400 to-indigo-300 bg-clip-text text-transparent">
-            GitQuest
+        <div className="text-left font-arcade">
+          <span className="text-sm font-bold tracking-widest text-pink-400 glow-pink-text block">
+            GITQUEST
           </span>
-          <div className="text-[10px] text-gray-500 uppercase tracking-widest font-semibold leading-tight">
-            Terminal simulator
-          </div>
+          <span className="text-[7px] text-cyan-400 font-semibold uppercase tracking-widest leading-none">
+            STAGE SELECTOR
+          </span>
         </div>
       </div>
 
       {/* Nav Menu Items */}
-      <nav className="hidden md:flex items-center gap-1 bg-slate-950/40 p-1 rounded-xl border border-slate-800/80">
+      <nav className="hidden md:flex items-center gap-1.5">
         {menuItems.map((item) => {
-          const Icon = item.icon;
           const isActive = activeView === item.id;
           return (
             <button
               key={item.id}
               onClick={() => setActiveView(item.id)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+              className={`flex items-center gap-1.5 px-3.5 py-2 border-2 text-[9px] font-arcade transition-all ${
                 isActive
-                  ? 'bg-purple-600 text-white shadow-md shadow-purple-900/20'
-                  : 'text-gray-400 hover:text-white hover:bg-slate-900/40'
+                  ? 'bg-pink-600 border-pink-400 text-white shadow-[0_0_8px_rgba(236,72,153,0.3)]'
+                  : 'bg-slate-950/60 border-slate-800 text-cyan-600 hover:text-cyan-400 hover:border-slate-700'
               }`}
             >
-              <Icon size={16} />
               <span>{item.label}</span>
             </button>
           );
@@ -77,42 +74,42 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({ userProfile, activeView, s
       </nav>
 
       {/* Profile HUD Stats */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-4 font-arcade text-[10px]">
         {/* Streak HUD */}
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orange-500/10 border border-orange-500/20 text-orange-400 text-sm font-semibold">
-          <Flame size={16} className="fill-orange-400/25 animate-pulse" />
-          <span>{userProfile.streak}d</span>
+        <div className="flex items-center gap-1.5 px-3 py-1.5 border-2 border-orange-500/30 bg-orange-950/20 text-orange-400">
+          <Flame size={12} className="fill-orange-400/25" />
+          <span>{userProfile.streak}D</span>
         </div>
 
-        {/* Coins HUD */}
-        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400 text-sm font-semibold">
-          <Coins size={16} className="fill-amber-400/25" />
-          <span>{userProfile.coins}</span>
+        {/* Coins (CREDITS) HUD */}
+        <div className="flex items-center gap-1.5 px-3 py-1.5 border-2 border-amber-500/30 bg-amber-950/20 text-amber-400">
+          <Coins size={12} className="fill-amber-400/25" />
+          <span>{userProfile.coins} C</span>
         </div>
 
-        {/* Level and XP bar */}
-        <div className="hidden sm:flex flex-col items-end gap-1">
-          <div className="text-xs font-bold flex items-center gap-1.5">
-            <span className="text-purple-400">LVL {userProfile.level}</span>
-            <span className="text-gray-500">|</span>
-            <span className="text-gray-400">{userProfile.xp} / {xpNeeded} XP</span>
+        {/* Level (STAGE) & XP (SCORE) HUD */}
+        <div className="hidden lg:flex flex-col items-end gap-1 text-right">
+          <div className="flex items-center gap-1.5">
+            <span className="text-pink-400">STAGE {userProfile.level}</span>
+            <span className="text-gray-600">|</span>
+            <span className="text-cyan-400">SCORE: {userProfile.xp}/{xpNeeded}</span>
           </div>
-          <div className="w-28 h-1.5 bg-slate-950 rounded-full border border-slate-800 overflow-hidden">
+          <div className="w-24 h-2 bg-slate-950 border border-slate-800 overflow-hidden">
             <div
               style={{ width: `${xpPercentage}%` }}
-              className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full transition-all duration-500"
+              className="h-full bg-pink-500 transition-all duration-500"
             ></div>
           </div>
         </div>
 
         {/* User Badge/Avatar */}
-        <div className="flex items-center gap-2.5 border-l border-brand-border pl-4">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-slate-800 to-slate-950 flex items-center justify-center text-lg border border-purple-500/30">
+        <div className="flex items-center gap-2.5 border-l-2 border-pink-500/30 pl-4">
+          <div className="w-8 h-8 rounded-full bg-slate-950 border-2 border-cyan-500/40 flex items-center justify-center text-lg">
             {getAvatarEmoji(userProfile.avatar)}
           </div>
-          <div className="hidden lg:block text-left">
-            <div className="text-sm font-bold leading-tight">{userProfile.name}</div>
-            <div className="text-[10px] text-purple-400 font-semibold">{userProfile.avatar}</div>
+          <div className="hidden xl:block text-left">
+            <div className="text-[9px] font-bold text-white leading-tight truncate max-w-[80px]">{userProfile.name}</div>
+            <div className="text-[7px] text-pink-400 uppercase tracking-widest">{userProfile.avatar.split(' ')[0]}</div>
           </div>
         </div>
       </div>
