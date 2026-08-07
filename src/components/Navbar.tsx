@@ -11,7 +11,8 @@ export const Navbar: React.FC = () => {
     xp, 
     level, 
     streak, 
-    currentChapterIndex 
+    currentChapterIndex,
+    user
   } = useGame();
 
   const isKingdom = activeWorld === 'kingdom';
@@ -87,14 +88,13 @@ export const Navbar: React.FC = () => {
           {themeMode === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
         </button>
 
-        {/* Quick User Avatar */}
         <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm tracking-tight text-white border shadow-md
           ${isKingdom 
             ? 'bg-gradient-to-tr from-amber-700 to-amber-500 border-amber-500/30 shadow-amber-500/10' 
             : 'bg-gradient-to-tr from-cyan-700 to-cyan-500 border-cyan-500/30 shadow-cyan-500/10'
           }
         `}>
-          OP
+          {(user?.username || 'OP').substring(0, 2).toUpperCase()}
         </div>
       </div>
     </header>

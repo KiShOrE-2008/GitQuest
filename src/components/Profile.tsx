@@ -1,10 +1,10 @@
 import React from 'react';
 import { useGame } from '../context/GameContext';
-import { Award, BarChart2, CheckCircle } from 'lucide-react';
+import { Award, BarChart2, CheckCircle, LogOut } from 'lucide-react';
 import { chapters } from '../data/chapters';
 
 export const Profile: React.FC = () => {
-  const { activeWorld, xp, level, streak, completedChapters, achievements } = useGame();
+  const { activeWorld, xp, level, streak, completedChapters, achievements, user, logout } = useGame();
 
   const isKingdom = activeWorld === 'kingdom';
 
@@ -35,21 +35,32 @@ export const Profile: React.FC = () => {
             : 'bg-gradient-to-tr from-cyan-600 to-cyan-400 border-cyan-500/30 shadow-cyan-500/20'
           }
         `}>
-          OP
+          {(user?.username || 'OP').substring(0, 2).toUpperCase()}
         </div>
 
-        <div className="relative z-10 space-y-2 text-center sm:text-left flex-grow">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 justify-center sm:justify-start">
-            <h2 className="text-3xl font-black text-white tracking-tight">Operator Profile</h2>
-            <span className={`text-[10px] font-bold px-3 py-1 rounded-full border self-center
-              ${isKingdom ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' : 'bg-cyan-500/10 border-cyan-500/20 text-cyan-400'}
-            `}>
-              {isKingdom ? 'Royal Chronologer' : 'Starfleet Operator'}
-            </span>
+        <div className="relative z-10 space-y-4 text-center sm:text-left flex-grow w-full">
+          <div className="flex flex-col sm:flex-row justify-between items-center w-full gap-4">
+            <div className="space-y-1 text-center sm:text-left">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 justify-center sm:justify-start">
+                <h2 className="text-3xl font-black text-white tracking-tight">{user?.username || 'Operator'}</h2>
+                <span className={`text-[10px] font-bold px-3 py-1 rounded-full border self-center
+                  ${isKingdom ? 'bg-amber-500/10 border-amber-500/20 text-amber-400' : 'bg-cyan-500/10 border-cyan-500/20 text-cyan-400'}
+                `}>
+                  {isKingdom ? 'Royal Chronologer' : 'Starfleet Operator'}
+                </span>
+              </div>
+              <p className="text-slate-400 text-xs font-light">
+                Email: {user?.email || 'offline@gitverse.com'} • Authenticated: {user?.provider || 'Local'}
+              </p>
+            </div>
+
+            <button 
+              onClick={logout}
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-rose-500/20 bg-rose-500/5 hover:bg-rose-500/10 text-rose-400 text-xs font-bold transition-all duration-200 hover:scale-105 active:scale-95"
+            >
+              <LogOut size={14} /> Sign Out
+            </button>
           </div>
-          <p className="text-slate-400 text-sm font-light">
-            Keep completing missions to level up your Git architecture credentials.
-          </p>
 
           {/* Quick Metrics Grid */}
           <div className="grid grid-cols-3 gap-4 mt-6 max-w-md mx-auto sm:mx-0">

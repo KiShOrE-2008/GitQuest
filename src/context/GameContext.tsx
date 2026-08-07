@@ -30,6 +30,10 @@ export interface GitState {
 interface GameContextType {
   activeWorld: 'kingdom' | 'space';
   setWorld: (world: 'kingdom' | 'space') => void;
+  isLoggedIn: boolean;
+  user: { username: string; email: string; provider?: string } | null;
+  login: (username: string, email: string, provider?: string) => void;
+  logout: () => void;
   themeMode: 'dark' | 'light';
   toggleThemeMode: () => void;
   currentChapterIndex: number;
@@ -75,6 +79,8 @@ const ACHIEVEMENTS_LIST = {
 
 export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [activeWorld, setActiveWorld] = useState<'kingdom' | 'space'>('kingdom');
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [user, setUser] = useState<{ username: string; email: string; provider?: string } | null>(null);
   const [themeMode, setThemeMode] = useState<'dark' | 'light'>('dark');
   const [currentChapterIndex, setCurrentChapterIndexState] = useState<number>(0);
   const [completedChapters, setCompletedChapters] = useState<number[]>([]);
@@ -89,6 +95,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Load state from localStorage on init
   useEffect(() => {
+    const savedUser = localStorage.getItem('gitverse_user');
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+      setIsLoggedIn(true);
+    }
     const savedWorld = localStorage.getItem('gitverse_world');
     if (savedWorld === 'kingdom' || savedWorld === 'space') {
       setActiveWorld(savedWorld);
@@ -126,6 +137,61 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const setWorld = (world: 'kingdom' | 'space') => {
     setActiveWorld(world);
     localStorage.setItem('gitverse_world', world);
+    audio.playClick();
+  };
+
+  const login = (username: string, email: string, provider?: string) => {
+    const userData = { username, email, provider };
+    setUser(userData);
+    setIsLoggedIn(true);
+    localStorage.setItem('gitverse_user', JSON.stringify(userData));
+
+    if (provider === 'demo') {
+      // Pre-populate advanced development states
+      setXp(650);
+      setLevel(3);
+      setStreak(5);
+      setCompletedChapters([1, 2, 3, 4, 5, 6, 7]);
+      setAchievements(["First Commit", "Branch Explorer"]);
+      setCurrentChapterIndexState(7); // Index 7 is Chapter 8 (Merge Chapter)
+      
+      localStorage.setItem('gitverse_xp', '650');
+      localStorage.setItem('gitverse_level', '3');
+      localStorage.setItem('gitverse_streak', '5');
+      localStorage.setItem('gitverse_completed_chapters', JSON.stringify([1, 2, 3, 4, 5, 6, 7]));
+      localStorage.setItem('gitverse_achievements', JSON.stringify(["First Commit", "Branch Explorer"]));
+      localStorage.setItem('gitverse_current_chapter', '7');
+      
+      // Load correct branch and commit nodes for Chapter 8
+      setTimeout(() => resetGitStateForChapter(7), 100);
+      audio.playVictory();
+      return;
+    }
+    
+    audio.playVictory();
+  };
+
+  const logout = () => {
+    setUser(null);
+    setIsLoggedIn(false);
+    
+    // Clear all storage elements for clean development testing
+    localStorage.removeItem('gitverse_user');
+    localStorage.removeItem('gitverse_xp');
+    localStorage.removeItem('gitverse_level');
+    localStorage.removeItem('gitverse_streak');
+    localStorage.removeItem('gitverse_completed_chapters');
+    localStorage.removeItem('gitverse_achievements');
+    localStorage.removeItem('gitverse_current_chapter');
+
+    // Reset local state references
+    setXp(0);
+    setLevel(1);
+    setStreak(1);
+    setCompletedChapters([]);
+    setAchievements([]);
+    setCurrentChapterIndexState(0);
+    
     audio.playClick();
   };
 
@@ -581,7 +647,11 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSoundEnabled,
       showMissionComplete,
       setShowMissionComplete,
-      unlockAchievement
+      unlockAchievement,
+      isLoggedIn,
+      user,
+      login,
+      logout
     }}>
       {children}
     </GameContext.Provider>

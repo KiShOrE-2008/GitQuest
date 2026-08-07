@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Auth } from './components/Auth';
 import { GameProvider, useGame } from './context/GameContext';
 import { LandingPage } from './components/LandingPage';
 import { WorldSelection } from './components/WorldSelection';
@@ -13,15 +14,22 @@ import { Settings } from './components/Settings';
 import { MissionComplete } from './components/MissionComplete';
 
 function AppContent() {
-  const [view, setView] = useState<'landing' | 'selection' | 'game'>('landing');
+  const [view, setView] = useState<'landing' | 'auth' | 'selection' | 'game'>('landing');
   const [tab, setTab] = useState<string>('dashboard');
   const { 
     activeWorld,
     showMissionComplete, 
     setShowMissionComplete, 
     currentChapterIndex, 
-    setChapterIndex 
+    setChapterIndex,
+    isLoggedIn
   } = useGame();
+
+  useEffect(() => {
+    if (!isLoggedIn && view === 'game') {
+      setView('landing');
+    }
+  }, [isLoggedIn, view]);
 
   const handleNextChapter = () => {
     setShowMissionComplete(false);
@@ -35,7 +43,26 @@ function AppContent() {
   };
 
   if (view === 'landing') {
-    return <LandingPage onStart={() => setView('selection')} />;
+    return (
+      <LandingPage 
+        onStart={() => {
+          if (isLoggedIn) {
+            setView('selection');
+          } else {
+            setView('auth');
+          }
+        }} 
+      />
+    );
+  }
+
+  if (view === 'auth') {
+    return (
+      <Auth 
+        onSuccess={() => setView('selection')} 
+        onClose={() => setView('landing')} 
+      />
+    );
   }
 
   if (view === 'selection') {
