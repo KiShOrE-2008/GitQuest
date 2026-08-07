@@ -7,6 +7,7 @@ import { ShopPage } from './pages/ShopPage';
 import { LeaderboardView } from './components/LeaderboardView';
 import { ProfileView } from './components/ProfileView';
 import { CHAPTERS, type Quest } from './data/quests';
+import { type WorldTheme } from './utils/themeTranslator';
 
 interface UserProfile {
   name: string;
@@ -23,7 +24,7 @@ interface UserProfile {
 
 export default function App() {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [activeTheme, setActiveTheme] = useState<string>('default');
+  const [activeTheme, setActiveTheme] = useState<WorldTheme>('kingdom');
   const [activeView, setActiveView] = useState<string>('dashboard');
   const [activeQuestId, setActiveQuestId] = useState<string | null>(null);
 
@@ -35,8 +36,10 @@ export default function App() {
     if (saved) {
       setUserProfile(JSON.parse(saved));
     }
-    if (savedTheme) {
+    if (savedTheme === 'kingdom' || savedTheme === 'space') {
       setActiveTheme(savedTheme);
+    } else {
+      setActiveTheme('kingdom');
     }
   }, []);
 
@@ -46,7 +49,7 @@ export default function App() {
     localStorage.setItem('gitquest_profile', JSON.stringify(updated));
   };
 
-  const handleStartOnboarding = (name: string, avatar: string) => {
+  const handleStartOnboarding = (name: string, avatar: string, world: 'kingdom' | 'space') => {
     const initialProfile: UserProfile = {
       name,
       avatar,
@@ -55,11 +58,13 @@ export default function App() {
       level: 1,
       streak: 1,
       completedQuests: [],
-      shopUnlockedThemes: ['default'],
+      shopUnlockedThemes: ['kingdom', 'space'],
       shopUnlockedAvatars: [avatar],
       badges: [],
     };
     saveProfile(initialProfile);
+    setActiveTheme(world);
+    localStorage.setItem('gitquest_theme', world);
   };
 
   // 3. Quest completion handler
@@ -71,7 +76,7 @@ export default function App() {
     const nextXp = userProfile.xp + xpEarned;
     const nextCoins = userProfile.coins + coinsEarned;
 
-    // Level-up calculation: level starts at 1, requires level * 150 XP for next level
+    // Level-up calculation
     let nextLevel = userProfile.level;
     let tempXp = nextXp;
     while (tempXp >= nextLevel * 150) {
@@ -112,7 +117,6 @@ export default function App() {
   const handleNextQuest = () => {
     if (!activeQuestId) return;
     
-    // Collect all quests in a flat array
     const allQuests: Quest[] = [];
     CHAPTERS.forEach(ch => {
       ch.quests.forEach(q => {
@@ -124,7 +128,6 @@ export default function App() {
     if (currentIdx !== -1 && currentIdx + 1 < allQuests.length) {
       setActiveQuestId(allQuests[currentIdx + 1].id);
     } else {
-      // Completed everything, return to dashboard
       setActiveView('dashboard');
       setActiveQuestId(null);
     }
@@ -142,8 +145,10 @@ export default function App() {
   };
 
   const handleEquipTheme = (themeId: string) => {
-    setActiveTheme(themeId);
-    localStorage.setItem('gitquest_theme', themeId);
+    if (themeId === 'kingdom' || themeId === 'space') {
+      setActiveTheme(themeId);
+      localStorage.setItem('gitquest_theme', themeId);
+    }
   };
 
   const handleBuyAvatar = (avatarName: string, cost: number) => {
@@ -198,28 +203,23 @@ export default function App() {
 
   // Resolve custom theme class names
   let themeStyle = 'bg-brand-bg text-brand-text';
-  if (activeTheme === 'synthwave') {
-    themeStyle = 'bg-[#180520] text-[#f472b6] theme-synthwave';
-  } else if (activeTheme === 'matrix') {
-    themeStyle = 'bg-[#030d04] text-[#00ff41] font-mono theme-matrix';
-  } else if (activeTheme === 'ocean') {
-    themeStyle = 'bg-[#021020] text-[#38bdf8] theme-ocean';
+  if (activeTheme === 'kingdom') {
+    themeStyle = 'bg-[#0f0a06] text-amber-100/90 theme-kingdom';
+  } else if (activeTheme === 'space') {
+    themeStyle = 'bg-[#030416] text-cyan-100/90 theme-space';
   }
 
   return (
     <div className={`min-h-screen bg-grid-pattern flex flex-col ${themeStyle}`}>
       {/* Dynamic background lighting elements */}
-      {activeTheme === 'default' && (
-        <div className="absolute top-0 right-1/4 w-80 h-80 bg-purple-900/10 rounded-full blur-3xl pointer-events-none"></div>
+      {activeTheme === 'kingdom' && (
+        <div className="absolute top-0 right-1/4 w-80 h-80 bg-amber-900/5 rounded-full blur-3xl pointer-events-none"></div>
       )}
-      {activeTheme === 'synthwave' && (
+      {activeTheme === 'space' && (
         <>
-          <div className="absolute top-0 left-10 w-96 h-96 bg-pink-500/5 rounded-full blur-3xl pointer-events-none"></div>
-          <div className="absolute bottom-10 right-10 w-96 h-96 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none"></div>
+          <div className="absolute top-0 left-10 w-96 h-96 bg-cyan-950/5 rounded-full blur-3xl pointer-events-none"></div>
+          <div className="absolute bottom-10 right-10 w-96 h-96 bg-purple-950/5 rounded-full blur-3xl pointer-events-none"></div>
         </>
-      )}
-      {activeTheme === 'matrix' && (
-        <div className="absolute top-0 right-10 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none"></div>
       )}
 
       {/* Top HUD Stats & Navigation */}
@@ -230,6 +230,8 @@ export default function App() {
           setActiveView(view);
           if (view !== 'simulator') setActiveQuestId(null);
         }}
+        activeTheme={activeTheme}
+        setActiveTheme={handleEquipTheme}
       />
 
       {/* View router panels */}
@@ -239,6 +241,7 @@ export default function App() {
             userProfile={userProfile}
             setActiveView={setActiveView}
             setActiveQuestId={setActiveQuestId}
+            activeTheme={activeTheme}
           />
         )}
 
@@ -247,6 +250,8 @@ export default function App() {
             quest={activeQuest}
             onQuestComplete={handleQuestComplete}
             onNextQuest={handleNextQuest}
+            activeTheme={activeTheme}
+            userAvatar={userProfile.avatar}
           />
         )}
 
@@ -271,8 +276,12 @@ export default function App() {
         )}
       </main>
 
-      <footer className="py-4 border-t border-brand-border bg-slate-950/20 text-center text-[10px] text-gray-600 relative z-10">
-        GitQuest Simulator © 2026. Made with ❤️ for mastering version history controls.
+      <footer className={`py-4 border-t text-center text-[10px] relative z-10 ${
+        activeTheme === 'kingdom'
+          ? 'border-amber-900/40 bg-amber-950/5 text-amber-800'
+          : 'border-cyan-950/40 bg-cyan-950/5 text-cyan-800'
+      }`}>
+        GitVerse Engine • Master Version Control Through Interchangeable Realities © 2026.
       </footer>
     </div>
   );
