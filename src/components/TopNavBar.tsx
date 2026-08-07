@@ -146,10 +146,14 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
             </div>
           </div>
 
-          {/* User Badge/Avatar */}
-          <div className="flex items-center gap-2.5 border-l-2 border-slate-800 pl-3">
+          {/* User Badge/Avatar (Clickable) */}
+          <div 
+            onClick={() => setActiveView('profile')}
+            className="flex items-center gap-2.5 border-l-2 border-slate-800 pl-3 cursor-pointer hover:opacity-80 transition-all"
+            title="View Stats Profile"
+          >
             <div className={`w-8 h-8 rounded-full bg-slate-950 border-2 flex items-center justify-center text-lg ${
-              isKingdom ? 'border-amber-500' : 'border-cyan-500'
+              isKingdom ? 'border-amber-500 hover:border-amber-400' : 'border-cyan-500 hover:border-cyan-450'
             }`}>
               {getAvatarEmoji(userProfile.avatar)}
             </div>

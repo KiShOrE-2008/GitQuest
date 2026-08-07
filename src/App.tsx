@@ -272,7 +272,7 @@ export default function App() {
         )}
 
         {activeView === 'profile' && (
-          <ProfileView userProfile={userProfile} />
+          <ProfileView userProfile={userProfile} activeTheme={activeTheme} />
         )}
       </main>
 

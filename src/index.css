@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Cinzel:wght@700&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -140,4 +140,92 @@ body {
   background-image: 
     linear-gradient(to right, rgba(236, 72, 153, 0.05) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(236, 72, 153, 0.05) 1px, transparent 1px);
+}
+
+/* ==================== KINGDOM DESIGN OVERRIDES ==================== */
+/* Removes retro/pixel CRT arcade assets for a premium medieval theme */
+
+.theme-kingdom {
+  font-family: 'Georgia', 'Times New Roman', serif !important;
+  font-size: 19px !important;
+  line-height: 1.6;
+}
+
+/* Override body styles */
+body:has(.theme-kingdom) {
+  font-family: 'Georgia', 'Times New Roman', serif !important;
+}
+
+/* Override standard pixel/arcade classes inside the kingdom context */
+.theme-kingdom .font-arcade {
+  font-family: 'Cinzel', 'Georgia', serif !important;
+  letter-spacing: 0.06em;
+}
+
+.theme-kingdom .font-pixel {
+  font-family: 'Georgia', 'Times New Roman', serif !important;
+}
+
+/* Disable CRT Overlay & scanning line graphics for Kingdom */
+.theme-kingdom.crt-effect::after,
+.theme-kingdom .crt-effect::after,
+.theme-kingdom.crt-screen,
+.theme-kingdom .crt-screen {
+  display: none !important;
+  animation: none !important;
+}
+
+/* Remove cyan/pink glowing mesh grids for Kingdom */
+.theme-kingdom.bg-grid-pattern,
+.theme-kingdom .bg-grid-pattern {
+  background-image: none !important;
+  background-color: #0c0805 !important;
+}
+
+/* Convert double pink/neon panels into bronze/leather medieval scroll boxes */
+.theme-kingdom .arcade-panel {
+  border: 3px solid #78350f !important; /* solid bronze border */
+  background-color: #150d08 !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.65), inset 0 0 15px rgba(120, 53, 15, 0.25) !important;
+}
+
+/* Convert pixel press buttons to solid medieval stamp buttons */
+.theme-kingdom .arcade-btn {
+  font-family: 'Cinzel', 'Georgia', serif !important;
+  font-size: 10px !important;
+  border: 1px solid #d97706 !important;
+  background-color: #78350f !important;
+  color: #fef3c7 !important;
+  text-shadow: none !important;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3) !important;
+  border-radius: 4px !important;
+  padding-top: 0.75rem !important;
+  padding-bottom: 0.75rem !important;
+  transition: all 0.15s ease !important;
+}
+
+.theme-kingdom .arcade-btn:hover {
+  background-color: #92400e !important;
+  border-color: #f59e0b !important;
+  transform: translateY(-1px) !important;
+}
+
+.theme-kingdom .arcade-btn:active {
+  transform: translateY(1px) !important;
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Medieval Scrollbars */
+.theme-kingdom ::-webkit-scrollbar-track {
+  background: #110904 !important;
+  border-left: 2px solid #78350f !important;
+}
+
+.theme-kingdom ::-webkit-scrollbar-thumb {
+  background: #78350f !important;
+  border: 2px solid #110904 !important;
+}
+
+.theme-kingdom ::-webkit-scrollbar-thumb:hover {
+  background: #d97706 !important;
 }

@@ -76,30 +76,56 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const totalQuestsCount = CHAPTERS.reduce((sum, ch) => sum + ch.quests.length, 0);
   const completedCount = userProfile.completedQuests.length;
 
+  const getAvatarEmoji = (avatarName: string) => {
+    if (avatarName.includes('King')) return '👑';
+    if (avatarName.includes('Queen')) return '👸';
+    if (avatarName.includes('Wizard')) return '🧙';
+    if (avatarName.includes('Robot')) return '🤖';
+    if (avatarName.includes('Astronaut')) return '👨‍🚀';
+    if (avatarName.includes('Scientist')) return '👩‍🔬';
+    return '💻';
+  };
+
   return (
     <div className={`max-w-5xl mx-auto space-y-8 ${isKingdom ? 'text-amber-100' : 'text-cyan-100'}`}>
       {/* Welcome Banner Card */}
       <div className={`arcade-panel rounded-none p-8 flex flex-col md:flex-row items-center justify-between gap-6 ${
         isKingdom ? 'border-amber-500' : 'border-pink-500'
       }`}>
-        <div className="text-center md:text-left space-y-3 relative z-10 font-arcade">
-          <h2 className={`text-2xl md:text-3xl font-extrabold tracking-wider ${textTitle}`}>
-            WELCOME, {userProfile.name}
-          </h2>
-          <p className={`${accentText} text-xs tracking-wide leading-relaxed font-pixel text-[16px] max-w-md`}>
-            {isKingdom
-              ? 'THE ROYAL ARCHIVES ARE DISORGANIZED. COMMUNE WITH THE SCROLL KEEPER TO RECORD NEW DECREES, UNITE PROVINCES, AND SECURE THE REIGN.'
-              : 'THE SPACE STATION CORES ARE DESYNCHRONIZED. INTERFACE WITH THE CORE AI TO LOG TIME CHECKPOINTS, RESOLVE TIMELINES, AND PREVENT DISSOLUTION.'}
-          </p>
-          <div className="flex items-center justify-center md:justify-start gap-6 pt-2 font-arcade text-[9px]">
-            <div>
-              <span className="text-gray-500 block">SECTORS SYNCHRONIZED</span>
-              <span className={`text-xs font-bold ${accentText} mt-1 block`}>{completedCount} / {totalQuestsCount}</span>
+        <div className="flex flex-col md:flex-row items-center gap-6 relative z-10">
+          {/* Clickable Large Avatar Card */}
+          <div 
+            onClick={() => setActiveView('profile')}
+            className={`w-20 h-20 bg-slate-950 border-4 flex items-center justify-center text-4xl shadow-xl shrink-0 cursor-pointer hover:scale-[1.03] transition-all relative group ${
+              isKingdom ? 'border-amber-500 hover:border-amber-400' : 'border-cyan-500 hover:border-cyan-400'
+            }`}
+            title="Click to view full Stats Profile"
+          >
+            {getAvatarEmoji(userProfile.avatar)}
+            <div className="absolute inset-0 bg-black/75 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+              <span className="text-[7px] font-arcade text-white text-center leading-normal">VIEW<br/>STATS</span>
             </div>
-            <div className={`w-[2px] h-8 ${isKingdom ? 'bg-amber-500/30' : 'bg-pink-500/30'}`}></div>
-            <div>
-              <span className="text-gray-500 block">PLAYER LEVEL RANK</span>
-              <span className={`text-xs font-bold mt-1 block ${isKingdom ? 'text-amber-400' : 'text-pink-400'}`}>STAGE {userProfile.level}</span>
+          </div>
+
+          <div className="text-center md:text-left space-y-3 font-arcade">
+            <h2 className={`text-2xl md:text-3xl font-extrabold tracking-wider ${textTitle}`}>
+              WELCOME, {userProfile.name}
+            </h2>
+            <p className={`${accentText} text-xs tracking-wide leading-relaxed font-pixel text-[16px] max-w-md`}>
+              {isKingdom
+                ? 'THE ROYAL ARCHIVES ARE DISORGANIZED. COMMUNE WITH THE SCROLL KEEPER TO RECORD NEW DECREES, UNITE PROVINCES, AND SECURE THE REIGN.'
+                : 'THE SPACE STATION CORES ARE DESYNCHRONIZED. INTERFACE WITH THE CORE AI TO LOG TIME CHECKPOINTS, RESOLVE TIMELINES, AND PREVENT DISSOLUTION.'}
+            </p>
+            <div className="flex items-center justify-center md:justify-start gap-6 pt-2 font-arcade text-[9px]">
+              <div>
+                <span className="text-gray-500 block">SECTORS SYNCHRONIZED</span>
+                <span className={`text-xs font-bold ${accentText} mt-1 block`}>{completedCount} / {totalQuestsCount}</span>
+              </div>
+              <div className={`w-[2px] h-8 ${isKingdom ? 'bg-amber-500/30' : 'bg-pink-500/30'}`}></div>
+              <div>
+                <span className="text-gray-500 block">PLAYER LEVEL RANK</span>
+                <span className={`text-xs font-bold mt-1 block ${isKingdom ? 'text-amber-400' : 'text-pink-400'}`}>STAGE {userProfile.level}</span>
+              </div>
             </div>
           </div>
         </div>
