@@ -12,6 +12,7 @@ import { Leaderboard } from './components/Leaderboard';
 import { Profile } from './components/Profile';
 import { Settings } from './components/Settings';
 import { MissionComplete } from './components/MissionComplete';
+import { MobileNavBar } from './components/MobileNavBar';
 
 function AppContent() {
   const [view, setView] = useState<'landing' | 'auth' | 'selection' | 'game'>('landing');
@@ -101,10 +102,12 @@ function AppContent() {
       
       <div className="flex-grow flex flex-col h-screen overflow-y-auto relative z-10">
         <Navbar />
-        <main className="flex-grow p-6 md:p-8">
+        <main className="flex-grow p-6 md:p-8 pb-24 md:pb-8">
           {renderTabContent()}
         </main>
       </div>
+
+      <MobileNavBar currentTab={tab} setTab={setTab} />
 
       {showMissionComplete && (
         <MissionComplete 

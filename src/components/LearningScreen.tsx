@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useGame } from '../context/GameContext';
 import { chapters } from '../data/chapters';
 import { GitTimeline } from './GitTimeline';
@@ -7,6 +7,7 @@ import { Shield, Rocket, CheckSquare, ChevronRight } from 'lucide-react';
 
 export const LearningScreen: React.FC = () => {
   const { activeWorld, currentChapterIndex, gitState } = useGame();
+  const [activeMobileTab, setActiveMobileTab] = useState<'story' | 'timeline' | 'terminal'>('story');
   
   const currentChapter = chapters[currentChapterIndex];
   const isKingdom = activeWorld === 'kingdom';
@@ -15,9 +16,53 @@ export const LearningScreen: React.FC = () => {
   const missionText = isKingdom ? currentChapter.mission.kingdom : currentChapter.mission.space;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-7xl mx-auto pb-12 items-stretch min-h-[calc(100vh-10rem)]">
-      {/* Left Column: Story Narrations & Checklist (5 Cols) */}
-      <div className="lg:col-span-5 flex flex-col justify-between space-y-6">
+    <div className="flex flex-col gap-4 max-w-7xl mx-auto pb-12 items-stretch min-h-[calc(100vh-10rem)]">
+      {/* Mobile view Tab Selector */}
+      <div className="flex lg:hidden w-full p-1 rounded-xl bg-slate-900/50 border border-slate-900/60 gap-1">
+        <button
+          onClick={() => setActiveMobileTab('story')}
+          className={`flex-grow py-2.5 text-center text-xs font-bold rounded-lg transition-all
+            ${activeMobileTab === 'story'
+              ? isKingdom 
+                ? 'bg-amber-500/10 border border-amber-500/20 text-amber-400' 
+                : 'bg-cyan-500/10 border border-cyan-500/20 text-cyan-400'
+              : 'text-slate-400'
+            }
+          `}
+        >
+          Story & Tasks
+        </button>
+        <button
+          onClick={() => setActiveMobileTab('timeline')}
+          className={`flex-grow py-2.5 text-center text-xs font-bold rounded-lg transition-all
+            ${activeMobileTab === 'timeline'
+              ? isKingdom 
+                ? 'bg-amber-500/10 border border-amber-500/20 text-amber-400' 
+                : 'bg-cyan-500/10 border border-cyan-500/20 text-cyan-400'
+              : 'text-slate-400'
+            }
+          `}
+        >
+          Timeline
+        </button>
+        <button
+          onClick={() => setActiveMobileTab('terminal')}
+          className={`flex-grow py-2.5 text-center text-xs font-bold rounded-lg transition-all
+            ${activeMobileTab === 'terminal'
+              ? isKingdom 
+                ? 'bg-amber-500/10 border border-amber-500/20 text-amber-400' 
+                : 'bg-cyan-500/10 border border-cyan-500/20 text-cyan-400'
+              : 'text-slate-400'
+            }
+          `}
+        >
+          Console
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+        {/* Left Column: Story Narrations & Checklist (5 Cols) */}
+        <div className={`lg:col-span-5 flex flex-col justify-between space-y-6 ${activeMobileTab === 'story' ? 'block' : 'hidden lg:flex'}`}>
         <div className={`flex-grow rounded-3xl border p-6 flex flex-col justify-between backdrop-blur-xl shadow-2xl relative overflow-hidden transition-colors duration-500
           ${isKingdom
             ? 'bg-amber-950/[0.03] border-amber-500/10'
@@ -134,17 +179,18 @@ export const LearningScreen: React.FC = () => {
       </div>
 
       {/* Right Column: Visualization & Terminal Shell (7 Cols) */}
-      <div className="lg:col-span-7 flex flex-col justify-between space-y-6">
+      <div className={`lg:col-span-7 flex flex-col justify-between space-y-6 ${activeMobileTab !== 'story' ? 'block' : 'hidden lg:flex'}`}>
         {/* Timeline (top) */}
-        <div className="flex-grow">
+        <div className={`flex-grow ${activeMobileTab === 'timeline' ? 'block' : 'hidden lg:block'}`}>
           <GitTimeline />
         </div>
 
         {/* Terminal (bottom) */}
-        <div className="h-[300px]">
+        <div className={`h-[300px] ${activeMobileTab === 'terminal' ? 'block' : 'hidden lg:block'}`}>
           <Terminal />
         </div>
       </div>
+    </div>
     </div>
   );
 };

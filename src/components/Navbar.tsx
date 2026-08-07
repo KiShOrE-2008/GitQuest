@@ -52,7 +52,7 @@ export const Navbar: React.FC = () => {
         </div>
 
         {/* Level / XP Progress bar */}
-        <div className="flex items-center gap-3">
+        <div className="hidden sm:flex items-center gap-3">
           <div className="text-right">
             <span className="text-[10px] uppercase font-bold text-slate-500 block leading-tight">Player Level</span>
             <span className="text-xs font-extrabold text-slate-300">Level {level}</span>

@@ -27,7 +27,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
   };
 
   return (
-    <aside className={`w-64 border-r backdrop-blur-xl flex flex-col justify-between p-6 transition-colors duration-500 min-h-screen
+    <aside className={`hidden md:flex w-64 border-r backdrop-blur-xl flex-col justify-between p-6 transition-colors duration-500 min-h-screen
       ${isKingdom 
         ? 'bg-amber-950/20 border-amber-500/10 text-amber-100' 
         : 'bg-cyan-950/20 border-cyan-500/10 text-cyan-100'

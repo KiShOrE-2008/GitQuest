@@ -30,16 +30,20 @@ console.log('Connecting to MongoDB database at:', MONGODB_URI.substring(0, 30) +
 mongoose.connect(MONGODB_URI)
   .then(() => {
     console.log('✓ Successfully connected to MongoDB Database Atlas.');
-    // Boot server after database is online
-    app.listen(PORT, () => {
-      console.log(`✓ GitVerse Server is listening on port ${PORT}`);
-    });
+    if (!process.env.VERCEL) {
+      app.listen(PORT, () => {
+        console.log(`✓ GitVerse Server is listening on port ${PORT}`);
+      });
+    }
   })
   .catch((err) => {
     console.error('✗ MongoDB Connection Error:', err.message);
     console.warn('⚠️ Server booting in OFFLINE mode. MONGODB_URI must be configured for cloud persistence.');
-    // Start server anyway so dev clients don't fail connections immediately
-    app.listen(PORT, () => {
-      console.log(`✓ GitVerse Server is listening on port ${PORT} (Offline Database Fallback)`);
-    });
+    if (!process.env.VERCEL) {
+      app.listen(PORT, () => {
+        console.log(`✓ GitVerse Server is listening on port ${PORT} (Offline Database Fallback)`);
+      });
+    }
   });
+
+export default app;
