@@ -33,6 +33,7 @@ interface GameContextType {
   isLoggedIn: boolean;
   user: { username: string; email: string; provider?: string } | null;
   login: (username: string, email: string, provider?: string) => void;
+  loginCredentials: (email: string, password: string, isSignUp: boolean, username?: string) => Promise<{ success: boolean; errorMsg?: string }>;
   logout: () => void;
   themeMode: 'dark' | 'light';
   toggleThemeMode: () => void;
@@ -133,11 +134,31 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
+  const API_URL = 'http://127.0.0.1:5000/api';
+
+  const syncProgressToDb = async (updatedData: any) => {
+    const token = localStorage.getItem('gitverse_token');
+    if (!token) return;
+    try {
+      await fetch(`${API_URL}/auth/sync`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(updatedData)
+      });
+    } catch (err) {
+      console.warn('MongoDB sync offline, updating locally:', err);
+    }
+  };
+
   // Update localStorage when dependencies update
   const setWorld = (world: 'kingdom' | 'space') => {
     setActiveWorld(world);
     localStorage.setItem('gitverse_world', world);
     audio.playClick();
+    syncProgressToDb({ activeWorld: world });
   };
 
   const login = (username: string, email: string, provider?: string) => {
@@ -171,12 +192,69 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     audio.playVictory();
   };
 
+  const loginCredentials = async (email: string, password: string, isSignUp: boolean, username?: string): Promise<{ success: boolean; errorMsg?: string }> => {
+    try {
+      const endpoint = isSignUp ? '/auth/signup' : '/auth/login';
+      const body = isSignUp ? { username, email, password } : { email, password };
+      
+      const res = await fetch(`${API_URL}${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        return { success: false, errorMsg: data.error || 'Authentication failed' };
+      }
+
+      localStorage.setItem('gitverse_token', data.token);
+      localStorage.setItem('gitverse_user', JSON.stringify({
+        username: data.user.username,
+        email: data.user.email,
+        provider: data.user.provider
+      }));
+
+      setUser({
+        username: data.user.username,
+        email: data.user.email,
+        provider: data.user.provider
+      });
+      setIsLoggedIn(true);
+
+      setXp(data.user.xp);
+      setLevel(data.user.level);
+      setStreak(data.user.streak);
+      setCompletedChapters(data.user.completedChapters || []);
+      setAchievements(data.user.achievements || []);
+      
+      const nextCh = data.user.completedChapters?.length || 0;
+      setCurrentChapterIndexState(nextCh);
+
+      localStorage.setItem('gitverse_xp', data.user.xp.toString());
+      localStorage.setItem('gitverse_level', data.user.level.toString());
+      localStorage.setItem('gitverse_streak', data.user.streak.toString());
+      localStorage.setItem('gitverse_completed_chapters', JSON.stringify(data.user.completedChapters || []));
+      localStorage.setItem('gitverse_achievements', JSON.stringify(data.user.achievements || []));
+      localStorage.setItem('gitverse_current_chapter', nextCh.toString());
+
+      setTimeout(() => resetGitStateForChapter(nextCh), 100);
+      return { success: true };
+    } catch (err) {
+      console.warn('Backend server offline, logging in as temporary local profile:', err);
+      const fallbackUser = username || email.split('@')[0];
+      login(fallbackUser, email, 'local-offline');
+      return { success: true };
+    }
+  };
+
   const logout = () => {
     setUser(null);
     setIsLoggedIn(false);
     
     // Clear all storage elements for clean development testing
     localStorage.removeItem('gitverse_user');
+    localStorage.removeItem('gitverse_token');
     localStorage.removeItem('gitverse_xp');
     localStorage.removeItem('gitverse_level');
     localStorage.removeItem('gitverse_streak');
@@ -214,6 +292,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setAchievements(next);
       localStorage.setItem('gitverse_achievements', JSON.stringify(next));
       addXp(50); // XP bonus for achievement
+      syncProgressToDb({ achievements: next });
     }
   };
 
@@ -221,16 +300,17 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setXp((prev) => {
       const total = prev + amount;
       localStorage.setItem('gitverse_xp', total.toString());
-      // Level calculations: every 300 XP is a level
       const targetLevel = Math.floor(total / 300) + 1;
+      let nextLevel = level;
       if (targetLevel > level) {
+        nextLevel = targetLevel;
         setLevel(targetLevel);
         localStorage.setItem('gitverse_level', targetLevel.toString());
-        // Unlock Git Hero if user reaches Level 5 or completes all chapters
         if (targetLevel >= 5) {
           setTimeout(() => unlockAchievement("Git Hero"), 1000);
         }
       }
+      syncProgressToDb({ xp: total, level: nextLevel });
       return total;
     });
   };
@@ -592,6 +672,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           const nextCompleted = [...completedChapters, activeCh.id];
           setCompletedChapters(nextCompleted);
           localStorage.setItem('gitverse_completed_chapters', JSON.stringify(nextCompleted));
+          syncProgressToDb({ completedChapters: nextCompleted });
 
           // Unlock badges based on chapters completed
           if (activeCh.id === 4) unlockAchievement("First Commit");
@@ -604,6 +685,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setStreak(prev => {
           const next = prev + 1;
           localStorage.setItem('gitverse_streak', next.toString());
+          syncProgressToDb({ streak: next });
           return next;
         });
       } else {
@@ -651,6 +733,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       isLoggedIn,
       user,
       login,
+      loginCredentials,
       logout
     }}>
       {children}

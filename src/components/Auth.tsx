@@ -9,7 +9,7 @@ interface AuthProps {
 }
 
 export const Auth: React.FC<AuthProps> = ({ onSuccess, onClose: _onClose }) => {
-  const { login, activeWorld } = useGame();
+  const { login, loginCredentials, activeWorld } = useGame();
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -22,7 +22,7 @@ export const Auth: React.FC<AuthProps> = ({ onSuccess, onClose: _onClose }) => {
 
   const isKingdom = activeWorld === 'kingdom';
 
-  const handleCredentialsSubmit = (e: React.FormEvent) => {
+  const handleCredentialsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -39,14 +39,28 @@ export const Auth: React.FC<AuthProps> = ({ onSuccess, onClose: _onClose }) => {
 
     audio.playClick();
     setLoadingProvider('credentials');
-    setLoadingStepText(mode === 'signin' ? 'Verifying records...' : 'Generating chronicle workspace...');
+    setLoadingStepText(mode === 'signin' ? 'Verifying database credentials...' : 'Registering timeline credentials...');
 
-    setTimeout(() => {
-      const finalUser = username.trim() || email.split('@')[0];
-      login(finalUser, email, 'credentials');
+    try {
+      const result = await loginCredentials(
+        email.trim(),
+        password.trim(),
+        mode === 'signup',
+        username.trim()
+      );
       setLoadingProvider(null);
-      onSuccess();
-    }, 1500);
+
+      if (result.success) {
+        onSuccess();
+      } else {
+        setError(result.errorMsg || 'Authentication failed');
+        audio.playError();
+      }
+    } catch (err) {
+      setLoadingProvider(null);
+      setError('Connection to auth database failed. Logging in in offline mode.');
+      audio.playError();
+    }
   };
 
   const handleOAuthLogin = (provider: 'google' | 'github') => {
