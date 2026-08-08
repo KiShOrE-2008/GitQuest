@@ -8,9 +8,13 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
-  const { activeWorld } = useGame();
+  const { activeWorld, setWorld } = useGame();
 
   const isKingdom = activeWorld === 'kingdom';
+
+  const handleToggleUniverse = () => {
+    setWorld(isKingdom ? 'space' : 'kingdom');
+  };
 
   const menuItems = [
     { id: 'dashboard', label: 'Home', icon: Home },
@@ -95,7 +99,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, setTab }) => {
           Progress and levels are preserved. Switch universe below:
         </p>
         <button
-          onClick={() => handleTabClick('settings')}
+          onClick={handleToggleUniverse}
           className={`w-full py-2 px-3 rounded-lg text-xs font-bold text-center border transition-all duration-200
             ${isKingdom
               ? 'bg-amber-500/10 border-amber-500/20 text-amber-300 hover:bg-amber-500/20'

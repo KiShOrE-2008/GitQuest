@@ -52,6 +52,7 @@ interface GameContextType {
   showMissionComplete: boolean;
   setShowMissionComplete: (show: boolean) => void;
   unlockAchievement: (name: string) => void;
+  updateUser: (updatedData: { username: string; email: string; collegeName?: string }) => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -134,6 +135,17 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, []);
 
+  // Sync themeMode to documentElement HTML root class list
+  useEffect(() => {
+    if (themeMode === 'light') {
+      document.documentElement.classList.add('light');
+      document.documentElement.classList.remove('dark');
+    } else {
+      document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
+    }
+  }, [themeMode]);
+
   const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000/api';
 
   const syncProgressToDb = async (updatedData: any) => {
@@ -190,6 +202,19 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     
     audio.playVictory();
+  };
+
+  const updateUser = (updatedData: { username: string; email: string; collegeName?: string }) => {
+    setUser(prev => {
+      const nextUser = {
+        ...(prev || { provider: 'local' }),
+        ...updatedData
+      };
+      localStorage.setItem('gitverse_user', JSON.stringify(nextUser));
+      return nextUser;
+    });
+    syncProgressToDb(updatedData);
+    audio.playClick();
   };
 
   const loginCredentials = async (email: string, password: string, isSignUp: boolean, username?: string, collegeName?: string): Promise<{ success: boolean; errorMsg?: string }> => {
@@ -568,10 +593,63 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Standard Info commands that run in any chapter context
     if (cleanCmd === "git status") {
-      let output = `On branch ${gitState.currentBranch || 'main'}\n`;
-      if (!gitState.isInitialized) {
-        return { success: false, output: "fatal: not a git repository (or any of the parent directories): .git" };
+      // If the current chapter's validation step expects 'git status', run validation first
+      const currentStepForStatus = activeCh.validationSteps[gitState.currentStepIndex];
+      if (currentStepForStatus) {
+        const statusResult = currentStepForStatus.validate(cleanCmd, { ...gitState, theme: activeWorld });
+        if (statusResult.success) {
+          const nextIndex = gitState.currentStepIndex + 1;
+          const finished = nextIndex >= activeCh.validationSteps.length;
+          let statusOutput = `On branch ${gitState.currentBranch || 'main'}\n`;
+          if (!gitState.isInitialized) {
+            statusOutput = "fatal: not a git repository (or any of the parent directories): .git";
+          } else {
+            const mergedState = { ...gitState, ...(statusResult.nextStateUpdate || {}) };
+            if (mergedState.stagedFiles.length === 0 && mergedState.workingDirectory.length === 0) {
+              statusOutput += "nothing to commit, working tree clean";
+            } else {
+              if (mergedState.stagedFiles.length > 0) {
+                statusOutput += "\nChanges to be committed:\n  (use \"git restore --staged <file>...\" to unstage)\n";
+                mergedState.stagedFiles.forEach((f: string) => { statusOutput += `\tnew file:   \u001b[32m${f}\u001b[0m\n`; });
+              }
+              if (mergedState.workingDirectory.length > 0) {
+                statusOutput += "\nUntracked files:\n  (use \"git add <file>...\" to include in what will be committed)\n";
+                mergedState.workingDirectory.forEach((f: string) => { statusOutput += `\t\u001b[31m${f}\u001b[0m\n`; });
+              }
+            }
+          }
+          const updatedState = {
+            ...gitState,
+            ...(statusResult.nextStateUpdate || {}),
+            currentStepIndex: nextIndex,
+            history: [...gitState.history, `$ ${cleanCmd}`, statusOutput, `\u001b[32m✓ Task complete: ${currentStepForStatus.description}\u001b[0m`]
+          };
+          setGitState(updatedState);
+          if (finished) {
+            if (soundEnabled) setTimeout(() => audio.playVictory(), 200);
+            setShowMissionComplete(true);
+            addXp(activeCh.xpReward);
+            if (!completedChapters.includes(activeCh.id)) {
+              const nextCompleted = [...completedChapters, activeCh.id];
+              setCompletedChapters(nextCompleted);
+              localStorage.setItem('gitverse_completed_chapters', JSON.stringify(nextCompleted));
+              syncProgressToDb({ completedChapters: nextCompleted });
+            }
+            setStreak(prev => { const next = prev + 1; localStorage.setItem('gitverse_streak', next.toString()); syncProgressToDb({ streak: next }); return next; });
+          } else {
+            if (soundEnabled) audio.playClick();
+          }
+          return { success: true, output: statusOutput };
+        }
       }
+
+      // Global display handler (non-validation chapters)
+      if (!gitState.isInitialized) {
+        const errOut = "fatal: not a git repository (or any of the parent directories): .git";
+        setGitState(prev => ({ ...prev, history: [...prev.history, `$ ${cleanCmd}`, errOut] }));
+        return { success: false, output: errOut };
+      }
+      let output = `On branch ${gitState.currentBranch || 'main'}\n`;
       if (gitState.stagedFiles.length === 0 && gitState.workingDirectory.length === 0) {
         output += "nothing to commit, working tree clean";
       } else {
@@ -596,11 +674,61 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     if (cleanCmd === "git log") {
+      // If the current chapter's validation step expects 'git log', run validation first
+      const currentStepForLog = activeCh.validationSteps[gitState.currentStepIndex];
+      if (currentStepForLog) {
+        const logResult = currentStepForLog.validate(cleanCmd, { ...gitState, theme: activeWorld });
+        if (logResult.success) {
+          const nextIndex = gitState.currentStepIndex + 1;
+          const finished = nextIndex >= activeCh.validationSteps.length;
+          if (!gitState.isInitialized) {
+            const errOut = "fatal: not a git repository";
+            setGitState(prev => ({ ...prev, history: [...prev.history, `$ ${cleanCmd}`, errOut] }));
+            return { success: false, output: errOut };
+          }
+          let logOutput = "";
+          if (gitState.commits.length === 0) {
+            logOutput = "No commits recorded yet.";
+          } else {
+            [...gitState.commits].reverse().forEach(c => {
+              logOutput += `\u001b[33mcommit ${c.hash}\u001b[0m (HEAD -> ${c.branch})\nAuthor: ${c.author}\nDate: ${c.timestamp}\n\n    ${c.message}\n\n`;
+            });
+          }
+          const updatedState = {
+            ...gitState,
+            ...(logResult.nextStateUpdate || {}),
+            currentStepIndex: nextIndex,
+            history: [...gitState.history, `$ ${cleanCmd}`, logOutput, `\u001b[32m✓ Task complete: ${currentStepForLog.description}\u001b[0m`]
+          };
+          setGitState(updatedState);
+          if (finished) {
+            if (soundEnabled) setTimeout(() => audio.playVictory(), 200);
+            setShowMissionComplete(true);
+            addXp(activeCh.xpReward);
+            if (!completedChapters.includes(activeCh.id)) {
+              const nextCompleted = [...completedChapters, activeCh.id];
+              setCompletedChapters(nextCompleted);
+              localStorage.setItem('gitverse_completed_chapters', JSON.stringify(nextCompleted));
+              syncProgressToDb({ completedChapters: nextCompleted });
+            }
+            setStreak(prev => { const next = prev + 1; localStorage.setItem('gitverse_streak', next.toString()); syncProgressToDb({ streak: next }); return next; });
+          } else {
+            if (soundEnabled) audio.playClick();
+          }
+          return { success: true, output: logOutput };
+        }
+      }
+
+      // Global display handler (non-validation chapters)
       if (!gitState.isInitialized) {
-        return { success: false, output: "fatal: not a git repository" };
+        const errOut = "fatal: not a git repository";
+        setGitState(prev => ({ ...prev, history: [...prev.history, `$ ${cleanCmd}`, errOut] }));
+        return { success: false, output: errOut };
       }
       if (gitState.commits.length === 0) {
-        return { success: true, output: "No commits recorded yet." };
+        const noCommitsOut = "No commits recorded yet.";
+        setGitState(prev => ({ ...prev, history: [...prev.history, `$ ${cleanCmd}`, noCommitsOut] }));
+        return { success: true, output: noCommitsOut };
       }
       let output = "";
       // Display reversed commits list (latest first)
@@ -732,6 +860,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       showMissionComplete,
       setShowMissionComplete,
       unlockAchievement,
+      updateUser,
       isLoggedIn,
       user,
       login,

@@ -14,11 +14,15 @@ import { Settings } from './components/Settings';
 import { MissionComplete } from './components/MissionComplete';
 import { MobileNavBar } from './components/MobileNavBar';
 
+import { Home } from './components/Home';
+import { EditProfile } from './components/EditProfile';
+
 function AppContent() {
   const [view, setView] = useState<'landing' | 'auth' | 'selection' | 'game'>('landing');
   const [tab, setTab] = useState<string>('dashboard');
   const { 
     activeWorld,
+    themeMode,
     showMissionComplete, 
     setShowMissionComplete, 
     currentChapterIndex, 
@@ -74,6 +78,7 @@ function AppContent() {
   const renderTabContent = () => {
     switch (tab) {
       case 'dashboard':
+        return <Home setTab={setTab} />;
       case 'learn':
         return <Dashboard setTab={setTab} />;
       case 'mission':
@@ -84,6 +89,8 @@ function AppContent() {
         return <Leaderboard />;
       case 'profile':
         return <Profile />;
+      case 'edit-profile':
+        return <EditProfile onBack={() => setTab('profile')} />;
       case 'settings':
         return <Settings />;
       default:
@@ -92,7 +99,9 @@ function AppContent() {
   };
 
   return (
-    <div className="flex min-h-screen transition-colors duration-500 overflow-hidden bg-slate-950 text-slate-100 relative">
+    <div className={`flex min-h-screen transition-colors duration-500 overflow-hidden relative
+      ${themeMode === 'light' ? 'bg-slate-100 text-slate-900' : 'bg-slate-950 text-slate-100'}
+    `}>
       {/* Background Spotlight gradient aura */}
       <div className={`absolute top-0 right-0 w-[500px] h-[500px] rounded-full blur-[150px] pointer-events-none opacity-25 transition-colors duration-1000 z-0
         ${activeWorld === 'kingdom' ? 'bg-amber-500/20' : 'bg-cyan-500/20'}

@@ -70,15 +70,15 @@ export const Terminal: React.FC = () => {
   return (
     <div className="flex flex-col h-full bg-slate-950/80 border border-slate-800 rounded-2xl overflow-hidden shadow-2xl font-mono text-sm">
       {/* Header controls */}
-      <div className="bg-slate-900 px-4 py-3 flex items-center justify-between border-b border-slate-800">
-        <div className="flex items-center gap-2 text-slate-400 font-semibold text-xs">
+      <div className="bg-slate-900 px-4 py-2.5 flex items-center justify-between border-b border-slate-800 shrink-0">
+        <div className="flex items-center gap-2 text-slate-400 font-semibold text-xs whitespace-nowrap">
           <TerminalIcon size={14} className={isKingdom ? 'text-amber-400' : 'text-cyan-400'} />
           <span>SIMULATED_GIT_SHELL v1.4.2</span>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 shrink-0">
           <button 
             onClick={handleReset}
-            className="flex items-center gap-1 text-[10px] font-bold text-rose-400 border border-rose-500/20 bg-rose-500/5 px-2.5 py-1 rounded-md hover:bg-rose-500/10 transition-colors"
+            className="flex items-center gap-1 text-[10px] font-bold text-rose-400 border border-rose-500/20 bg-rose-500/5 px-2.5 py-1 rounded-md hover:bg-rose-500/10 transition-colors whitespace-nowrap"
             title="Reset Terminal Workspace"
           >
             <RotateCcw size={12} /> Reset Chapter State
@@ -87,7 +87,7 @@ export const Terminal: React.FC = () => {
       </div>
 
       {/* Terminal logs viewport */}
-      <div className="flex-grow p-4 overflow-y-auto min-h-[180px] max-h-[350px] space-y-2 select-text selection:bg-indigo-500/20">
+      <div className="flex-1 p-4 overflow-y-auto min-h-0 space-y-2 select-text selection:bg-indigo-500/20">
         {/* Welcome message */}
         <div className="text-slate-500 text-xs">
           Type help to list general instructions, or use the quick buttons below.
@@ -95,7 +95,7 @@ export const Terminal: React.FC = () => {
 
         {/* History rendering */}
         {gitState.history.map((log, idx) => (
-          <div key={idx} className="leading-relaxed">
+          <div key={idx} className="leading-relaxed break-words">
             {parseAnsiColors(log)}
           </div>
         ))}
@@ -103,13 +103,13 @@ export const Terminal: React.FC = () => {
       </div>
 
       {/* Quick Action buttons */}
-      <div className="px-4 py-2 bg-slate-900/40 border-t border-slate-850 flex gap-1.5 flex-wrap items-center">
-        <span className="text-[10px] text-slate-500 font-bold uppercase mr-1">Hotkeys:</span>
+      <div className="px-4 py-2 bg-slate-900/40 border-t border-slate-850 flex gap-1.5 flex-wrap items-center shrink-0">
+        <span className="text-[10px] text-slate-500 font-bold uppercase mr-1 whitespace-nowrap">Hotkeys:</span>
         {getQuickCommands().map((cmd) => (
           <button
             key={cmd}
             onClick={() => handleQuickAction(cmd)}
-            className={`text-xs px-2.5 py-1 rounded-md bg-slate-900 border hover:border-slate-600 transition-all font-semibold
+            className={`text-xs px-2.5 py-1 rounded-md bg-slate-900 border hover:border-slate-600 transition-all font-semibold whitespace-nowrap
               ${cmd === currentChapter.realGitCommand
                 ? isKingdom 
                   ? 'border-amber-500/40 text-amber-300 hover:bg-amber-500/5' 
@@ -124,8 +124,8 @@ export const Terminal: React.FC = () => {
       </div>
 
       {/* Prompt input form */}
-      <form onSubmit={handleSubmit} className="flex bg-slate-900 border-t border-slate-800 p-2 items-center">
-        <div className={`pl-3 font-bold text-xs tracking-tight select-none
+      <form onSubmit={handleSubmit} className="flex bg-slate-900 border-t border-slate-800 p-2 items-center shrink-0 gap-2">
+        <div className={`pl-2 font-bold text-xs tracking-tight select-none shrink-0 whitespace-nowrap
           ${isKingdom ? 'text-amber-500' : 'text-cyan-500'}
         `}>
           historian@gitverse:{gitState.currentBranch || 'main'}$
@@ -134,7 +134,7 @@ export const Terminal: React.FC = () => {
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          className="flex-grow bg-transparent border-none outline-none focus:ring-0 text-slate-100 text-sm px-3 py-1 font-mono placeholder:text-slate-600"
+          className="flex-grow bg-transparent border-none outline-none focus:ring-0 text-slate-100 text-sm px-2 py-1 font-mono placeholder:text-slate-600 min-w-0"
           placeholder={`Run command, e.g. '${currentChapter.realGitCommand}'`}
           autoFocus
           autoComplete="off"
@@ -142,7 +142,7 @@ export const Terminal: React.FC = () => {
         />
         <button
           type="submit"
-          className={`p-2 rounded-lg text-slate-950 transition-all
+          className={`p-2 rounded-lg text-slate-950 transition-all shrink-0
             ${isKingdom 
               ? 'bg-amber-500 hover:bg-amber-400' 
               : 'bg-cyan-500 hover:bg-cyan-400'

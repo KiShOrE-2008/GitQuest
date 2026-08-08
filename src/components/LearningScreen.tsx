@@ -186,7 +186,7 @@ export const LearningScreen: React.FC = () => {
         </div>
 
         {/* Terminal (bottom) */}
-        <div className={`h-[300px] ${activeMobileTab === 'terminal' ? 'block' : 'hidden lg:block'}`}>
+        <div className={`h-[360px] shrink-0 ${activeMobileTab === 'terminal' ? 'block' : 'hidden lg:block'}`}>
           <Terminal />
         </div>
       </div>

@@ -453,7 +453,7 @@ export const chapters: Chapter[] = [
       },
       {
         description: "Commit the resolution",
-        validate: (cmd: string) => {
+        validate: (cmd: string, state: any) => {
           const match = cmd.trim().match(/^git\s+commit\s+-m\s+["'](.+?)["']$/);
           if (match) {
             return {
@@ -461,7 +461,7 @@ export const chapters: Chapter[] = [
               nextStateUpdate: {
                 stagedFiles: [],
                 commits: [
-                  ...({} as any), // Appends correctly in the context
+                  ...(state.commits || []),
                   {
                     id: "c3",
                     hash: "e7a8f2c",

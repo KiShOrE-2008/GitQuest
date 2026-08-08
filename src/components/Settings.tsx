@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useGame } from '../context/GameContext';
-import { Settings as SettingsIcon, Volume2, VolumeX, Moon, Sun, Shield, Rocket } from 'lucide-react';
+import { Settings as SettingsIcon, Volume2, VolumeX, Moon, Sun, Shield, Rocket, Edit3 } from 'lucide-react';
 import { audio } from '../utils/audio';
+import { EditProfile } from './EditProfile';
 
 export const Settings: React.FC = () => {
   const { 
@@ -10,12 +11,18 @@ export const Settings: React.FC = () => {
     themeMode, 
     toggleThemeMode, 
     soundEnabled, 
-    setSoundEnabled 
+    setSoundEnabled,
+    user 
   } = useGame();
 
   const [animationSpeed, setAnimationSpeed] = useState<'normal' | 'fast' | 'cinematic'>('normal');
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
 
   const isKingdom = activeWorld === 'kingdom';
+
+  if (isEditingProfile) {
+    return <EditProfile onBack={() => setIsEditingProfile(false)} />;
+  }
 
   const handleWorldSwitch = (world: 'kingdom' | 'space') => {
     setWorld(world);
@@ -46,7 +53,7 @@ export const Settings: React.FC = () => {
           <div>
             <h2 className="text-xl font-black text-white tracking-tight">Configuration Settings</h2>
             <p className="text-slate-400 text-xs font-light">
-              Customize game variables, audio channels, graphics rendering, and switch story universes.
+              Customize game variables, user credentials, audio channels, graphics rendering, and story universes.
             </p>
           </div>
         </div>
@@ -55,6 +62,30 @@ export const Settings: React.FC = () => {
       {/* Settings Grid Card */}
       <div className="bg-slate-950/40 rounded-3xl border border-slate-900 overflow-hidden shadow-2xl p-6 space-y-8">
         
+        {/* 0. Edit Profile Account Section */}
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-slate-300 block">User Account & Profile Details</label>
+            <p className="text-[10px] text-slate-500">
+              Current User: <span className="text-slate-300 font-semibold">{user?.username || 'Operator'}</span> ({user?.email || 'email@gitverse.io'})
+            </p>
+          </div>
+          <button
+            onClick={() => setIsEditingProfile(true)}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-xs font-bold transition-all duration-200 hover:scale-105 active:scale-95
+              ${isKingdom
+                ? 'bg-amber-500/10 border-amber-500/25 text-amber-300 hover:bg-amber-500/20'
+                : 'bg-cyan-500/10 border-cyan-500/25 text-cyan-300 hover:bg-cyan-500/20'
+              }
+            `}
+          >
+            <Edit3 size={14} /> Edit User Details
+          </button>
+        </div>
+
+        {/* Separator */}
+        <div className="border-t border-slate-900/60" />
+
         {/* 1. Universe Selection Theme Selector */}
         <div className="space-y-3">
           <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Game Universe Storyline</label>
