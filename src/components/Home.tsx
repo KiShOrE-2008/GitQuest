@@ -130,23 +130,23 @@ export const Home: React.FC<HomeProps> = ({ setTab }) => {
 
           {/* Right side circular progress indicator card */}
           <div className="relative z-10 flex flex-col items-center justify-center bg-slate-950/50 border border-slate-800 rounded-3xl p-6 w-56 text-center backdrop-blur-xl shadow-2xl shrink-0">
-            <svg className="w-28 h-28 transform -rotate-90" viewBox="0 0 100 100">
-              <circle cx="50" cy="50" r="40" stroke="#1e293b" strokeWidth="8" fill="transparent" />
-              <circle 
-                cx="50" 
-                cy="50" 
-                r="40" 
-                stroke={isKingdom ? '#f59e0b' : '#06b6d4'} 
-                strokeWidth="8" 
-                fill="transparent" 
-                strokeDasharray="251.2"
-                strokeDashoffset={251.2 - (251.2 * overallProgressPercent) / 100}
-                strokeLinecap="round"
-                className="transition-all duration-1000 ease-out"
-              />
-            </svg>
-            <div className="absolute top-16 left-1/2 -translate-x-1/2 -translate-y-1/2">
-              <span className="text-2xl font-black text-white">{overallProgressPercent}%</span>
+            <div className="relative w-28 h-28 flex items-center justify-center">
+              <svg className="w-28 h-28 transform -rotate-90 absolute inset-0" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="40" stroke="#1e293b" strokeWidth="8" fill="transparent" />
+                <circle 
+                  cx="50" 
+                  cy="50" 
+                  r="40" 
+                  stroke={isKingdom ? '#f59e0b' : '#06b6d4'} 
+                  strokeWidth="8" 
+                  fill="transparent" 
+                  strokeDasharray="251.2"
+                  strokeDashoffset={251.2 - (251.2 * overallProgressPercent) / 100}
+                  strokeLinecap="round"
+                  className="transition-all duration-1000 ease-out"
+                />
+              </svg>
+              <span className="text-2xl font-black text-white relative z-10">{overallProgressPercent}%</span>
             </div>
             <span className="text-xs font-bold text-slate-300 mt-4 block">Curriculum Progress</span>
             <span className="text-[10px] text-slate-500 mt-0.5 block">{numCompleted} of {totalChapters} Chapters Mastered</span>
