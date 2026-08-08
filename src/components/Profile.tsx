@@ -1,6 +1,6 @@
 import React from 'react';
 import { useGame } from '../context/GameContext';
-import { Award, BarChart2, CheckCircle, LogOut } from 'lucide-react';
+import { Award, BarChart2, CheckCircle, LogOut, GraduationCap } from 'lucide-react';
 import { chapters } from '../data/chapters';
 
 export const Profile: React.FC = () => {
@@ -49,9 +49,20 @@ export const Profile: React.FC = () => {
                   {isKingdom ? 'Royal Chronologer' : 'Starfleet Operator'}
                 </span>
               </div>
-              <p className="text-slate-400 text-xs font-light">
-                Email: {user?.email || 'offline@gitverse.com'} • Authenticated: {user?.provider || 'Local'}
-              </p>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-slate-400 text-xs font-light justify-center sm:justify-start">
+                <span>Email: {user?.email || 'offline@gitverse.com'}</span>
+                {user?.collegeName && (
+                  <>
+                    <span>•</span>
+                    <span className="inline-flex items-center gap-1 text-slate-300 font-medium">
+                      <GraduationCap size={14} className={isKingdom ? 'text-amber-400' : 'text-cyan-400'} />
+                      {user.collegeName}
+                    </span>
+                  </>
+                )}
+                <span>•</span>
+                <span>Auth: {user?.provider || 'Local'}</span>
+              </div>
             </div>
 
             <button 

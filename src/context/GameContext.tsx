@@ -31,9 +31,9 @@ interface GameContextType {
   activeWorld: 'kingdom' | 'space';
   setWorld: (world: 'kingdom' | 'space') => void;
   isLoggedIn: boolean;
-  user: { username: string; email: string; provider?: string } | null;
-  login: (username: string, email: string, provider?: string) => void;
-  loginCredentials: (email: string, password: string, isSignUp: boolean, username?: string) => Promise<{ success: boolean; errorMsg?: string }>;
+  user: { username: string; email: string; collegeName?: string; provider?: string } | null;
+  login: (username: string, email: string, provider?: string, collegeName?: string) => void;
+  loginCredentials: (email: string, password: string, isSignUp: boolean, username?: string, collegeName?: string) => Promise<{ success: boolean; errorMsg?: string }>;
   logout: () => void;
   themeMode: 'dark' | 'light';
   toggleThemeMode: () => void;
@@ -81,7 +81,7 @@ const ACHIEVEMENTS_LIST = {
 export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [activeWorld, setActiveWorld] = useState<'kingdom' | 'space'>('kingdom');
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-  const [user, setUser] = useState<{ username: string; email: string; provider?: string } | null>(null);
+  const [user, setUser] = useState<{ username: string; email: string; collegeName?: string; provider?: string } | null>(null);
   const [themeMode, setThemeMode] = useState<'dark' | 'light'>('dark');
   const [currentChapterIndex, setCurrentChapterIndexState] = useState<number>(0);
   const [completedChapters, setCompletedChapters] = useState<number[]>([]);
@@ -161,8 +161,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     syncProgressToDb({ activeWorld: world });
   };
 
-  const login = (username: string, email: string, provider?: string) => {
-    const userData = { username, email, provider };
+  const login = (username: string, email: string, provider?: string, collegeName?: string) => {
+    const userData = { username, email, collegeName, provider };
     setUser(userData);
     setIsLoggedIn(true);
     localStorage.setItem('gitverse_user', JSON.stringify(userData));
@@ -192,10 +192,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     audio.playVictory();
   };
 
-  const loginCredentials = async (email: string, password: string, isSignUp: boolean, username?: string): Promise<{ success: boolean; errorMsg?: string }> => {
+  const loginCredentials = async (email: string, password: string, isSignUp: boolean, username?: string, collegeName?: string): Promise<{ success: boolean; errorMsg?: string }> => {
     try {
       const endpoint = isSignUp ? '/auth/signup' : '/auth/login';
-      const body = isSignUp ? { username, email, password } : { email, password };
+      const body = isSignUp ? { username, email, password, collegeName } : { email, password };
       
       const res = await fetch(`${API_URL}${endpoint}`, {
         method: 'POST',
@@ -212,12 +212,14 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('gitverse_user', JSON.stringify({
         username: data.user.username,
         email: data.user.email,
+        collegeName: data.user.collegeName,
         provider: data.user.provider
       }));
 
       setUser({
         username: data.user.username,
         email: data.user.email,
+        collegeName: data.user.collegeName,
         provider: data.user.provider
       });
       setIsLoggedIn(true);
@@ -243,7 +245,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (err) {
       console.warn('Backend server offline, logging in as temporary local profile:', err);
       const fallbackUser = username || email.split('@')[0];
-      login(fallbackUser, email, 'local-offline');
+      login(fallbackUser, email, 'local-offline', collegeName);
       return { success: true };
     }
   };

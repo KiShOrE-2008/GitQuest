@@ -27,10 +27,25 @@ export const authenticateToken = (req, res, next) => {
 // Sign Up
 router.post('/signup', async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const { username, email, password, collegeName } = req.body;
 
     if (!username || !email || !password) {
       return res.status(400).json({ error: 'Missing required credentials fields' });
+    }
+
+    if (password.length < 8) {
+      return res.status(400).json({ error: 'Password must be at least 8 characters long' });
+    }
+
+    const hasUpper = /[A-Z]/.test(password);
+    const hasLower = /[a-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    const hasSpecial = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?`~]/.test(password);
+
+    if (!hasUpper || !hasLower || !hasNumber || !hasSpecial) {
+      return res.status(400).json({ 
+        error: 'Password must include at least one uppercase letter, lowercase letter, number, and special character' 
+      });
     }
 
     const existingUser = await User.findOne({ email });
@@ -42,7 +57,8 @@ router.post('/signup', async (req, res) => {
     const user = new User({
       username,
       email,
-      password: hashedPassword
+      password: hashedPassword,
+      collegeName: collegeName ? collegeName.trim() : ''
     });
 
     await user.save();
@@ -54,6 +70,7 @@ router.post('/signup', async (req, res) => {
       user: {
         username: user.username,
         email: user.email,
+        collegeName: user.collegeName,
         xp: user.xp,
         level: user.level,
         streak: user.streak,
@@ -94,6 +111,7 @@ router.post('/login', async (req, res) => {
       user: {
         username: user.username,
         email: user.email,
+        collegeName: user.collegeName,
         xp: user.xp,
         level: user.level,
         streak: user.streak,
@@ -111,7 +129,7 @@ router.post('/login', async (req, res) => {
 // Sync Progress
 router.post('/sync', authenticateToken, async (req, res) => {
   try {
-    const { xp, level, streak, completedChapters, achievements, activeWorld } = req.body;
+    const { xp, level, streak, completedChapters, achievements, activeWorld, collegeName } = req.body;
     
     const user = await User.findById(req.userId);
     if (!user) {
@@ -125,6 +143,7 @@ router.post('/sync', authenticateToken, async (req, res) => {
     if (completedChapters !== undefined) user.completedChapters = completedChapters;
     if (achievements !== undefined) user.achievements = achievements;
     if (activeWorld !== undefined) user.activeWorld = activeWorld;
+    if (collegeName !== undefined) user.collegeName = collegeName.trim();
 
     await user.save();
 
@@ -133,6 +152,7 @@ router.post('/sync', authenticateToken, async (req, res) => {
       user: {
         username: user.username,
         email: user.email,
+        collegeName: user.collegeName,
         xp: user.xp,
         level: user.level,
         streak: user.streak,

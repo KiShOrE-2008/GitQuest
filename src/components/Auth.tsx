@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useGame } from '../context/GameContext';
-import { Mail, Lock, User as UserIcon, ArrowRight, Loader2 } from 'lucide-react';
+import { Mail, Lock, User as UserIcon, ArrowRight, Loader2, GraduationCap, Eye, EyeOff, Check, X } from 'lucide-react';
 import { audio } from '../utils/audio';
 
 interface AuthProps {
@@ -13,7 +13,11 @@ export const Auth: React.FC<AuthProps> = ({ onSuccess, onClose: _onClose }) => {
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [username, setUsername] = useState('');
+  const [collegeName, setCollegeName] = useState('');
   const [error, setError] = useState('');
   
   // Loading states for OAuth simulation
@@ -21,6 +25,15 @@ export const Auth: React.FC<AuthProps> = ({ onSuccess, onClose: _onClose }) => {
   const [loadingStepText, setLoadingStepText] = useState('');
 
   const isKingdom = activeWorld === 'kingdom';
+
+  // Password constraints
+  const hasLength = password.length >= 8;
+  const hasUpper = /[A-Z]/.test(password);
+  const hasLower = /[a-z]/.test(password);
+  const hasNumber = /[0-9]/.test(password);
+  const hasSpecial = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?`~]/.test(password);
+  const isPasswordValid = hasLength && hasUpper && hasLower && hasNumber && hasSpecial;
+  const passwordsMatch = confirmPassword.length > 0 && password === confirmPassword;
 
   const handleCredentialsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,10 +44,27 @@ export const Auth: React.FC<AuthProps> = ({ onSuccess, onClose: _onClose }) => {
       audio.playError();
       return;
     }
-    if (mode === 'signup' && !username.trim()) {
-      setError('Please provide a username.');
-      audio.playError();
-      return;
+    if (mode === 'signup') {
+      if (!username.trim()) {
+        setError('Please provide a username.');
+        audio.playError();
+        return;
+      }
+      if (!collegeName.trim()) {
+        setError('Please enter your college name.');
+        audio.playError();
+        return;
+      }
+      if (!isPasswordValid) {
+        setError('Password does not meet security constraints (8+ chars, uppercase, lowercase, number, special char).');
+        audio.playError();
+        return;
+      }
+      if (password !== confirmPassword) {
+        setError('Passwords do not match.');
+        audio.playError();
+        return;
+      }
     }
 
     audio.playClick();
@@ -46,7 +76,8 @@ export const Auth: React.FC<AuthProps> = ({ onSuccess, onClose: _onClose }) => {
         email.trim(),
         password.trim(),
         mode === 'signup',
-        username.trim()
+        username.trim(),
+        mode === 'signup' ? collegeName.trim() : undefined
       );
       setLoadingProvider(null);
 
@@ -56,7 +87,7 @@ export const Auth: React.FC<AuthProps> = ({ onSuccess, onClose: _onClose }) => {
         setError(result.errorMsg || 'Authentication failed');
         audio.playError();
       }
-    } catch (err) {
+    } catch {
       setLoadingProvider(null);
       setError('Connection to auth database failed. Logging in in offline mode.');
       audio.playError();
@@ -114,10 +145,14 @@ export const Auth: React.FC<AuthProps> = ({ onSuccess, onClose: _onClose }) => {
     audio.playClick();
     setMode(prev => prev === 'signin' ? 'signup' : 'signin');
     setError('');
+    setPassword('');
+    setConfirmPassword('');
+    setShowPassword(false);
+    setShowConfirmPassword(false);
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col justify-center items-center px-4 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-950 flex flex-col justify-center items-center px-4 py-8 relative overflow-hidden">
       {/* Background Star field effects */}
       <div className="absolute inset-0 bg-radial-at-t from-slate-900 via-slate-950 to-black z-0 pointer-events-none" />
       <div className={`absolute w-[400px] h-[400px] rounded-full blur-[120px] pointer-events-none opacity-20 transition-all duration-1000
@@ -145,7 +180,7 @@ export const Auth: React.FC<AuthProps> = ({ onSuccess, onClose: _onClose }) => {
         )}
 
         {/* Header Title block */}
-        <div className="text-center space-y-2 mb-8">
+        <div className="text-center space-y-2 mb-6">
           <div className="flex justify-center items-center gap-2 mb-2">
             <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-slate-950 text-sm shadow
               ${isKingdom 
@@ -169,7 +204,7 @@ export const Auth: React.FC<AuthProps> = ({ onSuccess, onClose: _onClose }) => {
         </div>
 
         {/* Credentials Form */}
-        <form onSubmit={handleCredentialsSubmit} className="space-y-4">
+        <form onSubmit={handleCredentialsSubmit} className="space-y-3.5">
           {error && (
             <div className="text-rose-400 border border-rose-500/20 bg-rose-500/5 px-3 py-2 rounded-xl text-xs font-bold text-center">
               {error}
@@ -177,19 +212,35 @@ export const Auth: React.FC<AuthProps> = ({ onSuccess, onClose: _onClose }) => {
           )}
 
           {mode === 'signup' && (
-            <div className="space-y-1">
-              <label className="text-[10px] uppercase font-bold text-slate-500 block tracking-wider">Display Username</label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="w-full bg-slate-950/80 border border-slate-900 focus:border-slate-700 outline-none text-slate-100 rounded-xl px-10 py-3 text-sm transition-all placeholder:text-slate-650"
-                  placeholder="e.g. OctocatKnight"
-                />
-                <UserIcon size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
+            <>
+              <div className="space-y-1">
+                <label className="text-[10px] uppercase font-bold text-slate-500 block tracking-wider">Display Username</label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="w-full bg-slate-950/80 border border-slate-900 focus:border-slate-700 outline-none text-slate-100 rounded-xl px-10 py-2.5 text-sm transition-all placeholder:text-slate-650"
+                    placeholder="e.g. OctocatKnight"
+                  />
+                  <UserIcon size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
+                </div>
               </div>
-            </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] uppercase font-bold text-slate-500 block tracking-wider">College / Institution Name</label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={collegeName}
+                    onChange={(e) => setCollegeName(e.target.value)}
+                    className="w-full bg-slate-950/80 border border-slate-900 focus:border-slate-700 outline-none text-slate-100 rounded-xl px-10 py-2.5 text-sm transition-all placeholder:text-slate-650"
+                    placeholder="e.g. MIT, Stanford, IIT Madras"
+                  />
+                  <GraduationCap size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
+                </div>
+              </div>
+            </>
           )}
 
           <div className="space-y-1">
@@ -199,30 +250,106 @@ export const Auth: React.FC<AuthProps> = ({ onSuccess, onClose: _onClose }) => {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-slate-950/80 border border-slate-900 focus:border-slate-700 outline-none text-slate-100 rounded-xl px-10 py-3 text-sm transition-all placeholder:text-slate-650"
+                className="w-full bg-slate-950/80 border border-slate-900 focus:border-slate-700 outline-none text-slate-100 rounded-xl px-10 py-2.5 text-sm transition-all placeholder:text-slate-650"
                 placeholder="operator@gitverse.com"
               />
               <Mail size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
             </div>
           </div>
 
+          {/* Password field with view toggle */}
           <div className="space-y-1">
             <label className="text-[10px] uppercase font-bold text-slate-500 block tracking-wider">Password</label>
             <div className="relative">
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-slate-950/80 border border-slate-900 focus:border-slate-700 outline-none text-slate-100 rounded-xl px-10 py-3 text-sm transition-all placeholder:text-slate-650"
+                className="w-full bg-slate-950/80 border border-slate-900 focus:border-slate-700 outline-none text-slate-100 rounded-xl pl-10 pr-10 py-2.5 text-sm transition-all placeholder:text-slate-650"
                 placeholder="••••••••"
               />
               <Lock size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors p-1"
+                title={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+              </button>
             </div>
           </div>
 
+          {/* Confirm Password field (Sign Up only) */}
+          {mode === 'signup' && (
+            <div className="space-y-1">
+              <label className="text-[10px] uppercase font-bold text-slate-500 block tracking-wider">Confirm Password</label>
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className={`w-full bg-slate-950/80 border outline-none text-slate-100 rounded-xl pl-10 pr-10 py-2.5 text-sm transition-all placeholder:text-slate-650
+                    ${confirmPassword.length > 0 
+                      ? passwordsMatch 
+                        ? 'border-emerald-500/50 focus:border-emerald-500' 
+                        : 'border-rose-500/50 focus:border-rose-500'
+                      : 'border-slate-900 focus:border-slate-700'
+                    }
+                  `}
+                  placeholder="••••••••"
+                />
+                <Lock size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors p-1"
+                  title={showConfirmPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showConfirmPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Password Constraints Checklist (Sign Up only) */}
+          {mode === 'signup' && password.length > 0 && (
+            <div className="bg-slate-950/60 border border-slate-900 rounded-xl p-3 space-y-1.5 text-[11px]">
+              <span className="text-[10px] font-extrabold uppercase text-slate-500 tracking-wider block mb-1">Password Requirements</span>
+              <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-slate-400">
+                <div className={`flex items-center gap-1.5 ${hasLength ? 'text-emerald-400 font-medium' : 'text-slate-500'}`}>
+                  {hasLength ? <Check size={12} className="text-emerald-400 shrink-0" /> : <X size={12} className="text-slate-600 shrink-0" />}
+                  <span>8+ characters</span>
+                </div>
+                <div className={`flex items-center gap-1.5 ${hasUpper ? 'text-emerald-400 font-medium' : 'text-slate-500'}`}>
+                  {hasUpper ? <Check size={12} className="text-emerald-400 shrink-0" /> : <X size={12} className="text-slate-600 shrink-0" />}
+                  <span>Uppercase letter</span>
+                </div>
+                <div className={`flex items-center gap-1.5 ${hasLower ? 'text-emerald-400 font-medium' : 'text-slate-500'}`}>
+                  {hasLower ? <Check size={12} className="text-emerald-400 shrink-0" /> : <X size={12} className="text-slate-600 shrink-0" />}
+                  <span>Lowercase letter</span>
+                </div>
+                <div className={`flex items-center gap-1.5 ${hasNumber ? 'text-emerald-400 font-medium' : 'text-slate-500'}`}>
+                  {hasNumber ? <Check size={12} className="text-emerald-400 shrink-0" /> : <X size={12} className="text-slate-600 shrink-0" />}
+                  <span>Number (0-9)</span>
+                </div>
+                <div className={`flex items-center gap-1.5 ${hasSpecial ? 'text-emerald-400 font-medium' : 'text-slate-500'}`}>
+                  {hasSpecial ? <Check size={12} className="text-emerald-400 shrink-0" /> : <X size={12} className="text-slate-600 shrink-0" />}
+                  <span>Special char (!@#$...)</span>
+                </div>
+                {confirmPassword.length > 0 && (
+                  <div className={`flex items-center gap-1.5 ${passwordsMatch ? 'text-emerald-400 font-medium' : 'text-rose-400'}`}>
+                    {passwordsMatch ? <Check size={12} className="text-emerald-400 shrink-0" /> : <X size={12} className="text-rose-400 shrink-0" />}
+                    <span>Passwords match</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           <button 
             type="submit"
-            className={`w-full py-3 rounded-xl text-sm font-bold text-slate-950 flex items-center justify-center gap-1.5 transition-all shadow-md mt-6
+            className={`w-full py-3 rounded-xl text-sm font-bold text-slate-950 flex items-center justify-center gap-1.5 transition-all shadow-md mt-5
               ${isKingdom
                 ? 'bg-amber-500 hover:bg-amber-400 shadow-amber-500/10'
                 : 'bg-cyan-500 hover:bg-cyan-400 shadow-cyan-500/10'
