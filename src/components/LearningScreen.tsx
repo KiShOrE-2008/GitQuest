@@ -3,6 +3,7 @@ import { useGame } from '../context/GameContext';
 import { chapters } from '../data/chapters';
 import { GitTimeline } from './GitTimeline';
 import { Terminal } from './Terminal';
+import { StoryWorld } from './StoryWorld';
 import { Shield, Rocket, CheckSquare, ChevronRight } from 'lucide-react';
 
 export const LearningScreen: React.FC = () => {
@@ -17,6 +18,10 @@ export const LearningScreen: React.FC = () => {
 
   return (
     <div className="flex flex-col gap-4 max-w-7xl mx-auto pb-12 items-stretch min-h-[calc(100vh-10rem)]">
+
+      {/* ── Story World Animation Panel — Full Width ────────── */}
+      <StoryWorld />
+
       {/* Mobile view Tab Selector */}
       <div className="flex lg:hidden w-full p-1 rounded-xl bg-slate-900/50 border border-slate-900/60 gap-1">
         <button
@@ -115,6 +120,30 @@ export const LearningScreen: React.FC = () => {
                   <span className={`font-mono font-bold ${isKingdom ? 'text-amber-400' : 'text-cyan-400'}`}>
                     {currentChapter.conceptMapping[activeWorld]}
                   </span>
+                </div>
+              </div>
+
+              {/* 3-Step Educational Loop Reality Card */}
+              <div className={`p-3.5 rounded-2xl border backdrop-blur-md space-y-2 text-xs mt-3
+                ${isKingdom ? 'bg-amber-500/[0.04] border-amber-500/20' : 'bg-cyan-500/[0.04] border-cyan-500/20'}
+              `}>
+                <div className="flex items-center justify-between text-[9px] font-extrabold uppercase tracking-wider text-slate-400">
+                  <span>Educational Loop</span>
+                  <span className={isKingdom ? 'text-amber-400' : 'text-cyan-400'}>Concept Reality</span>
+                </div>
+                <div className="space-y-1.5 font-mono text-[11px]">
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-500 text-[10px] font-bold">🎮 Story Action:</span>
+                    <span className="text-slate-200 font-semibold text-[10px]">{currentChapter.realityMode.gameAction}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-500 text-[10px] font-bold">💻 Real Command:</span>
+                    <code className={`px-2 py-0.5 rounded text-[10px] font-bold bg-slate-900 border
+                      ${isKingdom ? 'border-amber-500/30 text-amber-300' : 'border-cyan-500/30 text-cyan-300'}
+                    `}>
+                      $ {currentChapter.realityMode.gitCommand}
+                    </code>
+                  </div>
                 </div>
               </div>
             </div>

@@ -118,3 +118,88 @@ html.light aside {
   border-color: rgba(203, 213, 225, 0.9) !important;
 }
 
+/* ─── Story World Animation Keyframes ─────────────────────── */
+
+@keyframes float-up {
+  from { opacity: 0; transform: translateY(24px) scale(0.9); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);   }
+}
+@keyframes stamp-in {
+  0%   { transform: scale(2.2) rotate(-8deg); opacity: 0; }
+  60%  { transform: scale(0.92) rotate(2deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+@keyframes draw-path {
+  from { stroke-dashoffset: 400; }
+  to   { stroke-dashoffset: 0;   }
+}
+@keyframes rewind-flash {
+  0%   { opacity: 1; filter: brightness(1); }
+  40%  { opacity: 0.2; filter: brightness(2) saturate(0); }
+  100% { opacity: 1; filter: brightness(1); }
+}
+@keyframes rocket-fly {
+  0%   { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-72px); opacity: 0; }
+}
+@keyframes conflict-shake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-5px); }
+  40%       { transform: translateX(5px); }
+  60%       { transform: translateX(-4px); }
+  80%       { transform: translateX(4px); }
+}
+@keyframes glow-ring {
+  0%, 100% { box-shadow: 0 0 8px 2px var(--glow-color, #f59e0b66); }
+  50%       { box-shadow: 0 0 22px 6px var(--glow-color, #f59e0baa); }
+}
+@keyframes slide-right {
+  from { transform: translateX(-28px); opacity: 0; }
+  to   { transform: translateX(0);     opacity: 1; }
+}
+@keyframes slide-left {
+  from { transform: translateX(28px); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+@keyframes merge-converge {
+  from { stroke-dashoffset: 200; }
+  to   { stroke-dashoffset: 0;   }
+}
+@keyframes twinkle {
+  0%, 100% { opacity: 0.2; }
+  50%       { opacity: 1; }
+}
+@keyframes drift-up {
+  0%   { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-18px); opacity: 0; }
+}
+@keyframes pulse-ring {
+  0%   { transform: scale(1);    opacity: 0.8; }
+  70%  { transform: scale(1.6);  opacity: 0;   }
+  100% { transform: scale(1.6);  opacity: 0;   }
+}
+@keyframes cherry-pop {
+  0%   { transform: scale(0) rotate(-20deg); opacity: 0; }
+  70%  { transform: scale(1.15) rotate(3deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+@keyframes vault-close {
+  from { transform: scaleY(0); transform-origin: top; }
+  to   { transform: scaleY(1); transform-origin: top; }
+}
+
+.anim-float-up   { animation: float-up   0.7s cubic-bezier(.22,1,.36,1) both; }
+.anim-stamp      { animation: stamp-in   0.5s cubic-bezier(.22,1,.36,1) both; }
+.anim-draw-path  { animation: draw-path  1.2s ease-out both; }
+.anim-rewind     { animation: rewind-flash 0.8s ease-in-out both; }
+.anim-slide-r    { animation: slide-right 0.6s cubic-bezier(.22,1,.36,1) both; }
+.anim-slide-l    { animation: slide-left  0.6s cubic-bezier(.22,1,.36,1) both; }
+.anim-merge      { animation: merge-converge 1s ease-out both; }
+.anim-cherry     { animation: cherry-pop 0.5s cubic-bezier(.22,1,.36,1) both; }
+.anim-vault      { animation: vault-close 0.4s ease-out both; }
+.anim-shake      { animation: conflict-shake 0.5s ease-in-out; }
+.anim-glow-ring  { animation: glow-ring 2s ease-in-out infinite; }
+.anim-pulse-ring { animation: pulse-ring 1.5s ease-out infinite; }
+.anim-twinkle    { animation: twinkle 2s ease-in-out infinite; }
+
+
