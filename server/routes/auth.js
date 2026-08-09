@@ -48,7 +48,9 @@ router.post('/signup', async (req, res) => {
       });
     }
 
-    const existingUser = await User.findOne({ email });
+    const normalizedEmail = email.trim().toLowerCase();
+
+    const existingUser = await User.findOne({ email: normalizedEmail });
     if (existingUser) {
       return res.status(400).json({ error: 'Account with this email already exists' });
     }
@@ -56,7 +58,7 @@ router.post('/signup', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = new User({
       username,
-      email,
+      email: normalizedEmail,
       password: hashedPassword,
       collegeName: collegeName ? collegeName.trim() : ''
     });
@@ -94,7 +96,7 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ error: 'Please enter email and password' });
     }
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: email.trim().toLowerCase() });
     if (!user) {
       return res.status(400).json({ error: 'Invalid email or password' });
     }

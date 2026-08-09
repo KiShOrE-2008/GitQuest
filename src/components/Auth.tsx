@@ -8,7 +8,7 @@ interface AuthProps {
   onClose?: () => void;
 }
 
-export const Auth: React.FC<AuthProps> = ({ onSuccess, onClose: _onClose }) => {
+export const Auth: React.FC<AuthProps> = ({ onSuccess, onClose }) => {
   const { login, loginCredentials, activeWorld } = useGame();
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [email, setEmail] = useState('');
@@ -35,6 +35,10 @@ export const Auth: React.FC<AuthProps> = ({ onSuccess, onClose: _onClose }) => {
   const isPasswordValid = hasLength && hasUpper && hasLower && hasNumber && hasSpecial;
   const passwordsMatch = confirmPassword.length > 0 && password === confirmPassword;
 
+  // Basic email format validation
+  const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  const isSubmitting = loadingProvider === 'credentials';
+
   const handleCredentialsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -44,6 +48,13 @@ export const Auth: React.FC<AuthProps> = ({ onSuccess, onClose: _onClose }) => {
       audio.playError();
       return;
     }
+
+    if (!isEmailValid) {
+      setError('Please enter a valid email address.');
+      audio.playError();
+      return;
+    }
+
     if (mode === 'signup') {
       if (!username.trim()) {
         setError('Please provide a username.');
@@ -73,10 +84,10 @@ export const Auth: React.FC<AuthProps> = ({ onSuccess, onClose: _onClose }) => {
 
     try {
       const result = await loginCredentials(
-        email.trim(),
+        email.trim().toLowerCase(),
         password.trim(),
         mode === 'signup',
-        username.trim(),
+        mode === 'signup' ? username.trim() : undefined,
         mode === 'signup' ? collegeName.trim() : undefined
       );
       setLoadingProvider(null);
@@ -89,8 +100,8 @@ export const Auth: React.FC<AuthProps> = ({ onSuccess, onClose: _onClose }) => {
       }
     } catch {
       setLoadingProvider(null);
-      setError('Connection to auth database failed. Logging in in offline mode.');
-      audio.playError();
+      // loginCredentials auto-falls back to offline mode on network error, so treat as success
+      onSuccess();
     }
   };
 
@@ -147,6 +158,8 @@ export const Auth: React.FC<AuthProps> = ({ onSuccess, onClose: _onClose }) => {
     setError('');
     setPassword('');
     setConfirmPassword('');
+    setUsername('');
+    setCollegeName('');
     setShowPassword(false);
     setShowConfirmPassword(false);
   };
@@ -158,6 +171,16 @@ export const Auth: React.FC<AuthProps> = ({ onSuccess, onClose: _onClose }) => {
       <div className={`absolute w-[400px] h-[400px] rounded-full blur-[120px] pointer-events-none opacity-20 transition-all duration-1000
         ${isKingdom ? 'bg-amber-500/20 top-1/4 left-1/4' : 'bg-cyan-500/20 bottom-1/4 right-1/4'}
       `} />
+
+      {/* Back button */}
+      {onClose && (
+        <button
+          onClick={onClose}
+          className="absolute top-5 left-5 z-10 text-slate-500 hover:text-slate-200 text-xs font-bold flex items-center gap-1.5 transition-colors"
+        >
+          ← Back
+        </button>
+      )}
 
       {/* Main card */}
       <div className={`relative z-10 w-full max-w-md rounded-3xl border p-8 backdrop-blur-xl transition-colors duration-500 shadow-2xl flex flex-col justify-between
@@ -204,7 +227,7 @@ export const Auth: React.FC<AuthProps> = ({ onSuccess, onClose: _onClose }) => {
         </div>
 
         {/* Credentials Form */}
-        <form onSubmit={handleCredentialsSubmit} className="space-y-3.5">
+        <form id="auth-form" onSubmit={handleCredentialsSubmit} className="space-y-3.5" noValidate>
           {error && (
             <div className="text-rose-400 border border-rose-500/20 bg-rose-500/5 px-3 py-2 rounded-xl text-xs font-bold text-center">
               {error}
@@ -217,9 +240,11 @@ export const Auth: React.FC<AuthProps> = ({ onSuccess, onClose: _onClose }) => {
                 <label className="text-[10px] uppercase font-bold text-slate-500 block tracking-wider">Display Username</label>
                 <div className="relative">
                   <input
+                    id="signup-username"
                     type="text"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
+                    autoComplete="username"
                     className="w-full bg-slate-950/80 border border-slate-900 focus:border-slate-700 outline-none text-slate-100 rounded-xl px-10 py-2.5 text-sm transition-all placeholder:text-slate-650"
                     placeholder="e.g. OctocatKnight"
                   />
@@ -231,9 +256,11 @@ export const Auth: React.FC<AuthProps> = ({ onSuccess, onClose: _onClose }) => {
                 <label className="text-[10px] uppercase font-bold text-slate-500 block tracking-wider">College / Institution Name</label>
                 <div className="relative">
                   <input
+                    id="signup-college"
                     type="text"
                     value={collegeName}
                     onChange={(e) => setCollegeName(e.target.value)}
+                    autoComplete="organization"
                     className="w-full bg-slate-950/80 border border-slate-900 focus:border-slate-700 outline-none text-slate-100 rounded-xl px-10 py-2.5 text-sm transition-all placeholder:text-slate-650"
                     placeholder="e.g. MIT, Stanford, IIT Madras"
                   />
@@ -247,10 +274,19 @@ export const Auth: React.FC<AuthProps> = ({ onSuccess, onClose: _onClose }) => {
             <label className="text-[10px] uppercase font-bold text-slate-500 block tracking-wider">Email Address</label>
             <div className="relative">
               <input
+                id="auth-email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-slate-950/80 border border-slate-900 focus:border-slate-700 outline-none text-slate-100 rounded-xl px-10 py-2.5 text-sm transition-all placeholder:text-slate-650"
+                autoComplete="email"
+                className={`w-full bg-slate-950/80 border outline-none text-slate-100 rounded-xl px-10 py-2.5 text-sm transition-all placeholder:text-slate-650
+                  ${email.length > 0
+                    ? isEmailValid
+                      ? 'border-slate-900 focus:border-slate-700'
+                      : 'border-rose-500/50 focus:border-rose-500'
+                    : 'border-slate-900 focus:border-slate-700'
+                  }
+                `}
                 placeholder="operator@gitverse.com"
               />
               <Mail size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
@@ -262,9 +298,11 @@ export const Auth: React.FC<AuthProps> = ({ onSuccess, onClose: _onClose }) => {
             <label className="text-[10px] uppercase font-bold text-slate-500 block tracking-wider">Password</label>
             <div className="relative">
               <input
+                id="auth-password"
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
                 className="w-full bg-slate-950/80 border border-slate-900 focus:border-slate-700 outline-none text-slate-100 rounded-xl pl-10 pr-10 py-2.5 text-sm transition-all placeholder:text-slate-650"
                 placeholder="••••••••"
               />
@@ -286,9 +324,11 @@ export const Auth: React.FC<AuthProps> = ({ onSuccess, onClose: _onClose }) => {
               <label className="text-[10px] uppercase font-bold text-slate-500 block tracking-wider">Confirm Password</label>
               <div className="relative">
                 <input
+                  id="auth-confirm-password"
                   type={showConfirmPassword ? 'text' : 'password'}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
+                  autoComplete="new-password"
                   className={`w-full bg-slate-950/80 border outline-none text-slate-100 rounded-xl pl-10 pr-10 py-2.5 text-sm transition-all placeholder:text-slate-650
                     ${confirmPassword.length > 0 
                       ? passwordsMatch 
@@ -349,15 +389,25 @@ export const Auth: React.FC<AuthProps> = ({ onSuccess, onClose: _onClose }) => {
 
           <button 
             type="submit"
+            disabled={isSubmitting}
             className={`w-full py-3 rounded-xl text-sm font-bold text-slate-950 flex items-center justify-center gap-1.5 transition-all shadow-md mt-5
               ${isKingdom
                 ? 'bg-amber-500 hover:bg-amber-400 shadow-amber-500/10'
                 : 'bg-cyan-500 hover:bg-cyan-400 shadow-cyan-500/10'
-              }
+              } disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100
             `}
           >
-            {mode === 'signin' ? 'Verify Blueprint Profile' : 'Construct New Profile'} 
-            <ArrowRight size={14} />
+            {isSubmitting ? (
+              <>
+                <Loader2 size={14} className="animate-spin" />
+                {mode === 'signin' ? 'Signing In...' : 'Creating Account...'}
+              </>
+            ) : (
+              <>
+                {mode === 'signin' ? 'Verify Blueprint Profile' : 'Construct New Profile'}
+                <ArrowRight size={14} />
+              </>
+            )}
           </button>
         </form>
 

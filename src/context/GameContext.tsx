@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { chapters } from '../data/chapters';
 import { audio } from '../utils/audio';
 
@@ -94,6 +94,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [showMissionComplete, setShowMissionComplete] = useState<boolean>(false);
 
   const [gitState, setGitState] = useState<GitState>(INITIAL_GIT_STATE);
+  const missionCompleteTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Load state from localStorage on init
   useEffect(() => {
@@ -255,7 +256,14 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setCompletedChapters(data.user.completedChapters || []);
       setAchievements(data.user.achievements || []);
       
-      const nextCh = data.user.completedChapters?.length || 0;
+      const completedIds: number[] = data.user.completedChapters || [];
+      // Find the first chapter index not yet completed
+      const nextCh = (() => {
+        for (let i = 0; i < chapters.length; i++) {
+          if (!completedIds.includes(chapters[i].id)) return i;
+        }
+        return chapters.length - 1; // All complete — stay on last
+      })();
       setCurrentChapterIndexState(nextCh);
 
       localStorage.setItem('gitverse_xp', data.user.xp.toString());
@@ -350,6 +358,9 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const resetGitStateForChapter = (chapterIndex: number) => {
+    if (missionCompleteTimeoutRef.current) {
+      clearTimeout(missionCompleteTimeoutRef.current);
+    }
     const ch = chapters[chapterIndex];
     if (!ch) return;
 
@@ -627,7 +638,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setGitState(updatedState);
           if (finished) {
             if (soundEnabled) setTimeout(() => audio.playVictory(), 200);
-            setShowMissionComplete(true);
+            if (missionCompleteTimeoutRef.current) clearTimeout(missionCompleteTimeoutRef.current);
+            missionCompleteTimeoutRef.current = setTimeout(() => {
+              setShowMissionComplete(true);
+            }, 2500);
             addXp(activeCh.xpReward);
             if (!completedChapters.includes(activeCh.id)) {
               const nextCompleted = [...completedChapters, activeCh.id];
@@ -703,7 +717,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setGitState(updatedState);
           if (finished) {
             if (soundEnabled) setTimeout(() => audio.playVictory(), 200);
-            setShowMissionComplete(true);
+            if (missionCompleteTimeoutRef.current) clearTimeout(missionCompleteTimeoutRef.current);
+            missionCompleteTimeoutRef.current = setTimeout(() => {
+              setShowMissionComplete(true);
+            }, 2500);
             addXp(activeCh.xpReward);
             if (!completedChapters.includes(activeCh.id)) {
               const nextCompleted = [...completedChapters, activeCh.id];
@@ -794,7 +811,10 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (soundEnabled) {
           setTimeout(() => audio.playVictory(), 200);
         }
-        setShowMissionComplete(true);
+        if (missionCompleteTimeoutRef.current) clearTimeout(missionCompleteTimeoutRef.current);
+        missionCompleteTimeoutRef.current = setTimeout(() => {
+          setShowMissionComplete(true);
+        }, 2500);
         addXp(activeCh.xpReward);
 
         // Add to completed chapters if not already there
