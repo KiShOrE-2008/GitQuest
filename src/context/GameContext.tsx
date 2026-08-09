@@ -147,7 +147,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [themeMode]);
 
-  const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000/api';
+  const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://127.0.0.1:5000/api' : '/api');
 
   const syncProgressToDb = async (updatedData: any) => {
     const token = localStorage.getItem('gitverse_token');
