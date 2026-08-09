@@ -8,6 +8,7 @@ interface Message {
   from: 'user' | 'bot';
   text: string;
   time: string;
+  typed?: boolean;
 }
 
 // ─── Knowledge Base ──────────────────────────────────────────────────────────
@@ -165,6 +166,57 @@ function getBotResponse(userInput: string, chapterIndex: number, isKingdom: bool
   return fallbacks[Math.floor(Math.random() * fallbacks.length)];
 }
 
+// ─── Typewriter Effect Component for Bot Answers ─────────────────────────────
+
+const BotMessageBubble: React.FC<{
+  msg: Message;
+  isKingdom: boolean;
+  renderText: (text: string) => React.ReactNode;
+  onTypeUpdate: () => void;
+  onComplete: (id: number) => void;
+}> = ({ msg, isKingdom, renderText, onTypeUpdate, onComplete }) => {
+  const [displayedLength, setDisplayedLength] = useState(() => (msg.typed ? msg.text.length : 0));
+
+  useEffect(() => {
+    if (msg.typed) {
+      setDisplayedLength(msg.text.length);
+      return;
+    }
+
+    setDisplayedLength(0);
+    const totalLen = msg.text.length;
+    if (totalLen === 0) {
+      onComplete(msg.id);
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setDisplayedLength((prev) => {
+        const next = Math.min(prev + 3, totalLen);
+        if (next >= totalLen) {
+          clearInterval(interval);
+          onComplete(msg.id);
+        }
+        return next;
+      });
+      onTypeUpdate();
+    }, 16);
+
+    return () => clearInterval(interval);
+  }, [msg.id, msg.text, msg.typed]);
+
+  const currentText = msg.text.slice(0, displayedLength);
+
+  return (
+    <div className="space-y-0.5">
+      {renderText(currentText)}
+      {displayedLength < msg.text.length && (
+        <span className={`inline-block w-1.5 h-3 ml-0.5 animate-pulse rounded-sm align-middle ${isKingdom ? 'bg-amber-400' : 'bg-cyan-400'}`} />
+      )}
+    </div>
+  );
+};
+
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export const ChatBot: React.FC = () => {
@@ -179,12 +231,15 @@ export const ChatBot: React.FC = () => {
       ? '👋 Greetings! I am **GitGuide** — your personal Git tutor. Ask about any Git command, say **"hint"** to get help with your current chapter, or ask how the game works!'
       : '👋 Commander! I am **GitGuide** — your AI copilot. Ask about Git commands, say **"hint"** for chapter help, or ask anything about the game!',
     time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    typed: true,
   }]);
   const [inputVal, setInputVal] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const chatRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -196,6 +251,34 @@ export const ChatBot: React.FC = () => {
       setTimeout(() => inputRef.current?.focus(), 150);
     }
   }, [isOpen]);
+
+  // Click outside to close chatbot window
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      if (
+        chatRef.current && 
+        !chatRef.current.contains(event.target as Node) &&
+        buttonRef.current && 
+        !buttonRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isOpen]);
+
+  const handleCompleteTyping = (id: number) => {
+    setMessages(prev => prev.map(m => m.id === id ? { ...m, typed: true } : m));
+  };
 
   const sendMessage = (text: string) => {
     if (!text.trim() || isTyping) return;
@@ -213,6 +296,7 @@ export const ChatBot: React.FC = () => {
         from: 'bot',
         text: response,
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        typed: false,
       };
       setIsTyping(false);
       setMessages(prev => [...prev, botMsg]);
@@ -251,6 +335,7 @@ export const ChatBot: React.FC = () => {
     <>
       {/* Floating Action Button */}
       <button
+        ref={buttonRef}
         onClick={() => setIsOpen(v => !v)}
         aria-label="Open GitGuide chatbot"
         className={`fixed bottom-20 md:bottom-6 right-4 md:right-6 z-40 w-14 h-14 rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95 select-none
@@ -275,7 +360,8 @@ export const ChatBot: React.FC = () => {
       {/* Chat Panel */}
       {isOpen && (
         <div
-          className={`fixed bottom-36 md:bottom-24 right-4 md:right-6 z-40 w-[340px] sm:w-[380px] rounded-2xl border shadow-2xl flex flex-col overflow-hidden anim-chatbot-in
+          ref={chatRef}
+          className={`fixed bottom-36 md:bottom-24 left-4 right-4 sm:left-auto sm:right-6 z-40 w-[calc(100vw-2rem)] sm:w-[380px] max-w-[380px] rounded-2xl border shadow-2xl flex flex-col overflow-hidden anim-chatbot-in
             ${isKingdom
               ? 'border-amber-500/20 shadow-amber-500/10'
               : 'border-cyan-500/20 shadow-cyan-500/10'
@@ -316,7 +402,7 @@ export const ChatBot: React.FC = () => {
 
           {/* Messages area */}
           <div className="flex-1 overflow-y-auto px-3 py-3 space-y-3" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(100,116,139,0.2) transparent' }}>
-            {messages.map(msg => (
+            {messages.map((msg) => (
               <div key={msg.id} className={`flex items-end gap-2 ${msg.from === 'user' ? 'justify-end' : 'justify-start'}`}>
                 {msg.from === 'bot' && (
                   <div className={`w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-slate-950 mb-0.5
@@ -331,9 +417,17 @@ export const ChatBot: React.FC = () => {
                     : 'bg-slate-900 text-slate-300 border border-slate-800/60 rounded-bl-sm'
                   }
                 `}>
-                  <div className="space-y-0.5">
-                    {msg.from === 'bot' ? renderText(msg.text) : msg.text}
-                  </div>
+                  {msg.from === 'bot' ? (
+                    <BotMessageBubble
+                      msg={msg}
+                      isKingdom={isKingdom}
+                      renderText={renderText}
+                      onTypeUpdate={() => messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })}
+                      onComplete={handleCompleteTyping}
+                    />
+                  ) : (
+                    <div className="space-y-0.5">{msg.text}</div>
+                  )}
                   <div className={`text-[9px] mt-1.5 ${msg.from === 'user' ? 'text-slate-950/50 text-right' : 'text-slate-600'}`}>
                     {msg.time}
                   </div>

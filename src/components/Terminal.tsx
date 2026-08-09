@@ -128,7 +128,8 @@ export const Terminal: React.FC = () => {
         <div className={`pl-2 font-bold text-xs tracking-tight select-none shrink-0 whitespace-nowrap
           ${isKingdom ? 'text-amber-500' : 'text-cyan-500'}
         `}>
-          historian@gitverse:{gitState.currentBranch || 'main'}$
+          <span className="hidden sm:inline">historian@gitverse:{gitState.currentBranch || 'main'}$</span>
+          <span className="sm:hidden font-mono">$</span>
         </div>
         <input
           type="text"

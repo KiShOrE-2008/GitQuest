@@ -36,15 +36,15 @@ export const StoryWorld: React.FC = () => {
   const difficultyLabel = chapter.id <= 5 ? '🟢 Basic' : chapter.id <= 12 ? '🟡 Intermediate' : chapter.id <= 17 ? '🔴 Advanced' : '🟣 Boss';
 
   return (
-    <div className={`relative rounded-3xl border overflow-hidden backdrop-blur-xl transition-all duration-500 shadow-2xl ${accentBg}`}>
+    <div className={`relative rounded-2xl border overflow-hidden backdrop-blur-xl transition-all duration-500 shadow-xl shrink-0 ${accentBg}`}>
       {/* Header strip */}
-      <div className="flex items-center justify-between px-5 py-2.5 border-b border-slate-900/60">
-        <div className="flex items-center gap-3">
+      <div className="flex items-center justify-between px-4 py-1.5 border-b border-slate-900/60">
+        <div className="flex items-center gap-2.5">
           <span className="text-[9px] font-extrabold uppercase tracking-widest text-slate-500">Story World</span>
           <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full border ${accentBg} ${accentText}`}>
             {isKingdom ? '🏰 Kingdom Chronicles' : '🚀 Space Odyssey'}
           </span>
-          <span className="text-[9px] text-slate-600">{difficultyLabel}</span>
+          <span className="text-[9px] text-slate-600 hidden sm:inline">{difficultyLabel}</span>
         </div>
         {/* Phase indicator */}
         <div className="flex items-center gap-1.5">
@@ -62,11 +62,11 @@ export const StoryWorld: React.FC = () => {
       </div>
 
       {/* Scene animation area */}
-      <div className="h-48 relative">
+      <div className="h-32 sm:h-36 relative overflow-hidden">
         {SceneComponent ? (
           <SceneComponent phase={phase} stepIndex={gitState.currentStepIndex} isKingdom={isKingdom} />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-slate-600 text-sm italic">
+          <div className="w-full h-full flex items-center justify-center text-slate-600 text-xs italic">
             Scene loading…
           </div>
         )}
@@ -74,34 +74,34 @@ export const StoryWorld: React.FC = () => {
 
       {/* Bottom: "What Just Happened?" 3-step reveal — shown once a step completes */}
       {(phase === 'active' || phase === 'complete') && (
-        <div className="border-t border-slate-900/60 px-5 py-3">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-0 sm:divide-x sm:divide-slate-800">
+        <div className="border-t border-slate-900/60 px-4 py-2">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-0 sm:divide-x sm:divide-slate-800 text-[10px]">
             {/* Step 1: Story action */}
-            <div className="flex items-start gap-2 sm:pr-5 flex-1">
-              <span className="text-base shrink-0">🎮</span>
-              <div>
-                <span className="text-[9px] font-extrabold uppercase tracking-widest text-slate-500 block">Story Action</span>
-                <span className="text-[10px] font-semibold text-slate-300">
+            <div className="flex items-center gap-2 sm:pr-4 flex-1">
+              <span className="text-sm shrink-0">🎮</span>
+              <div className="truncate">
+                <span className="text-[8px] font-extrabold uppercase tracking-widest text-slate-500 block">Story Action</span>
+                <span className="font-semibold text-slate-300 truncate block">
                   {isKingdom ? chapter.realityMode.gameAction : (chapter.realityMode as any).spaceAction || chapter.realityMode.gameAction}
                 </span>
               </div>
             </div>
             {/* Step 2: Git concept */}
-            <div className="flex items-start gap-2 sm:px-5 flex-1">
-              <span className="text-base shrink-0">🌿</span>
-              <div>
-                <span className="text-[9px] font-extrabold uppercase tracking-widest text-slate-500 block">Git Concept</span>
-                <span className="text-[10px] font-semibold" style={{ color: accentColor }}>
+            <div className="flex items-center gap-2 sm:px-4 flex-1">
+              <span className="text-sm shrink-0">🌿</span>
+              <div className="truncate">
+                <span className="text-[8px] font-extrabold uppercase tracking-widest text-slate-500 block">Git Concept</span>
+                <span className="font-semibold truncate block" style={{ color: accentColor }}>
                   {chapter.conceptTerm} — {chapter.conceptMapping[activeWorld]}
                 </span>
               </div>
             </div>
             {/* Step 3: Real command */}
-            <div className="flex items-start gap-2 sm:pl-5 flex-1">
-              <span className="text-base shrink-0">💻</span>
-              <div>
-                <span className="text-[9px] font-extrabold uppercase tracking-widest text-slate-500 block">Real Command</span>
-                <code className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border
+            <div className="flex items-center gap-2 sm:pl-4 flex-1">
+              <span className="text-sm shrink-0">💻</span>
+              <div className="truncate">
+                <span className="text-[8px] font-extrabold uppercase tracking-widest text-slate-500 block">Real Command</span>
+                <code className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border inline-block
                   ${isKingdom ? 'border-amber-500/30 bg-amber-500/5 text-amber-300' : 'border-cyan-500/30 bg-cyan-500/5 text-cyan-300'}`}>
                   $ {chapter.realityMode.gitCommand}
                 </code>
