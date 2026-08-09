@@ -777,7 +777,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     if (cleanCmd === "help") {
-      const output = `Available command structures:\n- git init\n- git status\n- git add <filename> or git add .\n- git commit -m "message"\n- git log\n- git branch <name>\n- git checkout <branch-name>\n- git merge <branch-name>\n- git remote add origin <url>\n- git push origin main\n- git clone <url>\n- git reset --hard <commit-hash>\n- git revert <commit-hash>\n- git stash`;
+      const output = `Available command structures:\n- git init\n- git status\n- git add <filename> or git add .\n- git commit -m "message"\n- git log\n- git branch <name>\n- git checkout <branch-name>\n- git merge <branch-name>\n- git remote add origin <url>\n- git push origin main\n- git pull origin main\n- git clone <url>\n- git reset --hard <commit-hash>\n- git revert <commit-hash>\n- git rebase <branch>\n- git cherry-pick <commit-hash>\n- git stash\n- git stash pop`;
       setGitState(prev => ({
         ...prev,
         history: [...prev.history, `$ ${cleanCmd}`, output]

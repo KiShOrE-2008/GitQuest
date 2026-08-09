@@ -176,6 +176,10 @@ const BotMessageBubble: React.FC<{
   onComplete: (id: number) => void;
 }> = ({ msg, isKingdom, renderText, onTypeUpdate, onComplete }) => {
   const [displayedLength, setDisplayedLength] = useState(() => (msg.typed ? msg.text.length : 0));
+  const onTypeUpdateRef = useRef(onTypeUpdate);
+  const onCompleteRef = useRef(onComplete);
+  onTypeUpdateRef.current = onTypeUpdate;
+  onCompleteRef.current = onComplete;
 
   useEffect(() => {
     if (msg.typed) {
@@ -186,7 +190,7 @@ const BotMessageBubble: React.FC<{
     setDisplayedLength(0);
     const totalLen = msg.text.length;
     if (totalLen === 0) {
-      onComplete(msg.id);
+      onCompleteRef.current(msg.id);
       return;
     }
 
@@ -195,11 +199,11 @@ const BotMessageBubble: React.FC<{
         const next = Math.min(prev + 3, totalLen);
         if (next >= totalLen) {
           clearInterval(interval);
-          onComplete(msg.id);
+          onCompleteRef.current(msg.id);
         }
         return next;
       });
-      onTypeUpdate();
+      onTypeUpdateRef.current();
     }, 16);
 
     return () => clearInterval(interval);

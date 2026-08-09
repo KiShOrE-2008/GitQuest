@@ -573,8 +573,8 @@ export const chapters: Chapter[] = [
       {
         description: "Push changes to remote",
         validate: (cmd: string) => {
-          const parts = cmd.trim().split(/\s+/);
-          if (parts[0] === "git" && parts[1] === "push" && parts[2] === "origin" && parts[3] === "main") {
+          const clean = cmd.trim();
+          if (clean === "git push origin main" || clean === "git push -u origin main") {
             return { success: true, nextStateUpdate: { isPushed: true } };
           }
           return { success: false, errorMsg: "Push main branch to remote: git push origin main" };
@@ -918,13 +918,13 @@ export const chapters: Chapter[] = [
       space: "We have half-finished solar panels, but a solar flare requires us to repair shield leaks immediately. Place the panels in cryo-storage."
     },
     mission: {
-      kingdom: "Stash your active changes using: 'git stash', and check status.",
-      space: "Stash the panel changes: 'git stash'."
+      kingdom: "Stash your active changes using 'git stash', then restore them with 'git stash pop'.",
+      space: "Stash the panel changes with 'git stash', then retrieve them using 'git stash pop'."
     },
     realGitCommand: "git stash",
     realityMode: {
       gameAction: "📦 Vault unfinished diagrams",
-      gitCommand: "git stash"
+      gitCommand: "git stash / git stash pop"
     },
     xpReward: 120,
     targetBranch: "main",
@@ -942,6 +942,21 @@ export const chapters: Chapter[] = [
             };
           }
           return { success: false, errorMsg: "Type 'git stash' to store active changes." };
+        }
+      },
+      {
+        description: "Restore stashed changes",
+        validate: (cmd: string) => {
+          if (cmd.trim() === "git stash pop") {
+            return {
+              success: true,
+              nextStateUpdate: {
+                workingDirectory: ["bridge.txt / solar.txt"],
+                stashedFiles: []
+              }
+            };
+          }
+          return { success: false, errorMsg: "Retrieve your stashed work with: git stash pop" };
         }
       }
     ]
