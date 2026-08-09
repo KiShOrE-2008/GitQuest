@@ -13,6 +13,7 @@ import { Profile } from './components/Profile';
 import { Settings } from './components/Settings';
 import { MissionComplete } from './components/MissionComplete';
 import { MobileNavBar } from './components/MobileNavBar';
+import { ChatBot } from './components/ChatBot';
 
 import { Home } from './components/Home';
 import { EditProfile } from './components/EditProfile';
@@ -124,6 +125,9 @@ function AppContent() {
           onNextChapter={handleNextChapter} 
         />
       )}
+
+      {/* Git Tutor Chatbot — available on all game screens */}
+      <ChatBot />
     </div>
   );
 }
