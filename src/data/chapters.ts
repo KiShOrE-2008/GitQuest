@@ -20,6 +20,11 @@ export interface Chapter {
     gameAction: string;
     gitCommand: string;
   };
+  detailedDescription: {
+    command: string;
+    purpose: string;
+    whatItDoes: string;
+  };
   xpReward: number;
   targetBranch: string;
   validationSteps: {
@@ -32,6 +37,11 @@ export const chapters: Chapter[] = [
   {
     id: 1,
     title: "Welcome to Git",
+    detailedDescription: {
+      command: "git init",
+      purpose: "Initializes a brand-new Git repository in the current folder.",
+      whatItDoes: "Creates a hidden '.git' directory containing object stores (objects/), branch reference folders (refs/), a HEAD pointer file, and a config file. This establishes the internal database structure that tracks all future file versions and commit history."
+    },
     goal: "Understand what Git is and why version control exists.",
     conceptTerm: "Repository",
     conceptMapping: {
@@ -71,6 +81,11 @@ export const chapters: Chapter[] = [
   {
     id: 2,
     title: "Working Directory",
+    detailedDescription: {
+      command: "git status",
+      purpose: "Inspects the current state of files in your working directory and staging area.",
+      whatItDoes: "Compares file modification timestamps and SHA checksums in your workspace against the Git index file (.git/index) and the latest commit pointed to by HEAD. It categorizes files into untracked, modified, staged, or deleted."
+    },
     goal: "Understand files in the working directory (untracked changes).",
     conceptTerm: "Working Directory",
     conceptMapping: {
@@ -113,6 +128,11 @@ export const chapters: Chapter[] = [
   {
     id: 3,
     title: "Staging Area",
+    detailedDescription: {
+      command: "git add <file>",
+      purpose: "Stages modified or new files to prepare them for the next commit snapshot.",
+      whatItDoes: "Reads the file content, compresses it into a SHA-1/SHA-256 blob object saved inside '.git/objects/', and updates the binary staging index (.git/index) mapping the file path to that new blob object hash."
+    },
     goal: "Understand git add and preparing files for check-in.",
     conceptTerm: "Staging Area",
     conceptMapping: {
@@ -161,6 +181,11 @@ export const chapters: Chapter[] = [
   {
     id: 4,
     title: "Commit",
+    detailedDescription: {
+      command: "git commit -m \"message\"",
+      purpose: "Saves a permanent snapshot of all staged files in the project history.",
+      whatItDoes: "Generates a 'tree' object representing directory structures and staged blobs, then writes a 'commit' object containing author info, timestamp, commit message, root tree hash, and parent commit hash. Finally, updates the current branch pointer file in '.git/refs/heads/' to point to this new commit hash."
+    },
     goal: "Understand snapshots and saving changes permanently.",
     conceptTerm: "Commit",
     conceptMapping: {
@@ -219,6 +244,11 @@ export const chapters: Chapter[] = [
   {
     id: 5,
     title: "Git Log",
+    detailedDescription: {
+      command: "git log",
+      purpose: "Displays the chronological history of commits on the active branch.",
+      whatItDoes: "Reads the commit hash pointed to by HEAD, then traverses backwards through parent commit hashes recorded in each commit object, outputting commit SHA hashes, authors, timestamps, and commit messages."
+    },
     goal: "Review commit history.",
     conceptTerm: "Git Log",
     conceptMapping: {
@@ -255,6 +285,11 @@ export const chapters: Chapter[] = [
   {
     id: 6,
     title: "Branch",
+    detailedDescription: {
+      command: "git branch <branch-name>",
+      purpose: "Creates an independent line of development to work on features without affecting main.",
+      whatItDoes: "Creates a lightweight 41-byte text file inside '.git/refs/heads/<branch-name>' containing the 40-character SHA hash of the current commit. It does NOT duplicate source files or copy repository history."
+    },
     goal: "Understand branching for experimental development.",
     conceptTerm: "Branch",
     conceptMapping: {
@@ -301,6 +336,11 @@ export const chapters: Chapter[] = [
   {
     id: 7,
     title: "Checkout",
+    detailedDescription: {
+      command: "git checkout <branch-name>",
+      purpose: "Switches your active working environment and HEAD pointer to a different branch or commit.",
+      whatItDoes: "Updates '.git/HEAD' to point to 'refs/heads/<branch-name>', refreshes the staging index (.git/index), and overwrites physical files in your working directory to match the snapshot of the target branch."
+    },
     goal: "Switch HEAD pointer to a different branch.",
     conceptTerm: "Checkout",
     conceptMapping: {
@@ -347,6 +387,11 @@ export const chapters: Chapter[] = [
   {
     id: 8,
     title: "Merge",
+    detailedDescription: {
+      command: "git merge <branch-name>",
+      purpose: "Integrates changes from a feature branch back into your active branch.",
+      whatItDoes: "Finds the common ancestor commit of both branches. If the target branch has linear commits (Fast-Forward), it moves the active branch ref forward. If histories diverged, it executes a 3-way merge algorithm and generates a new 'merge commit' with two parent commit hashes."
+    },
     goal: "Integrate modifications from one branch back into main.",
     conceptTerm: "Merge",
     conceptMapping: {
@@ -418,6 +463,11 @@ export const chapters: Chapter[] = [
   {
     id: 9,
     title: "Merge Conflict",
+    detailedDescription: {
+      command: "git merge (with conflict resolution)",
+      purpose: "Manually resolves conflicting changes when two branches modify the exact same lines of a file.",
+      whatItDoes: "When 3-way merge cannot reconcile differing edits on the same line, Git writes conflict markers (<<<<<<<, =======, >>>>>>>) into the file and pauses. After you edit and stage the file with 'git add', running 'git commit' completes the merge commit object."
+    },
     goal: "Manually resolve divergent changes on the same file.",
     conceptTerm: "Merge Conflict",
     conceptMapping: {
@@ -483,6 +533,11 @@ export const chapters: Chapter[] = [
   {
     id: 10,
     title: "GitHub & Remote",
+    detailedDescription: {
+      command: "git remote add origin <url> & git push -u origin main",
+      purpose: "Links local repository to a remote server (e.g. GitHub) and uploads local commits.",
+      whatItDoes: "Registers the remote host URL in '.git/config'. 'git push' transmits missing blob, tree, and commit objects over SSH/HTTPS to the remote server and updates remote-tracking branch references in '.git/refs/remotes/origin/'."
+    },
     goal: "Link the local repository to a remote server.",
     conceptTerm: "Push & Pull",
     conceptMapping: {
@@ -530,6 +585,11 @@ export const chapters: Chapter[] = [
   {
     id: 11,
     title: "Clone",
+    detailedDescription: {
+      command: "git clone <url>",
+      purpose: "Downloads an entire existing repository from a remote server to your local machine.",
+      whatItDoes: "Executes a 'git init', sets up the 'origin' remote URL, downloads all packfiles (blobs, trees, commits, tags), configures remote-tracking references in '.git/refs/remotes/', and checks out default branch files into your workspace."
+    },
     goal: "Download a remote repository.",
     conceptTerm: "Clone",
     conceptMapping: {
@@ -571,6 +631,11 @@ export const chapters: Chapter[] = [
   {
     id: 12,
     title: "Fork",
+    detailedDescription: {
+      command: "Fork Button (GitHub / GitLab)",
+      purpose: "Creates a personal server-side copy of a public repository under your user account.",
+      whatItDoes: "Performs server-side repository duplication on the host platform (GitHub), granting you full push access to your copy without affecting the original author's main repository."
+    },
     goal: "Create a personal copy of a shared project on GitHub.",
     conceptTerm: "Fork",
     conceptMapping: {
@@ -607,6 +672,11 @@ export const chapters: Chapter[] = [
   {
     id: 13,
     title: "Reset",
+    detailedDescription: {
+      command: "git reset --hard <commit-hash>",
+      purpose: "Rewinds project history by moving current branch pointer back to a past commit.",
+      whatItDoes: "Overwrites '.git/refs/heads/<branch>' with the targeted commit hash. With '--hard', it also clears all staged index modifications and resets all working directory files to match that past snapshot completely."
+    },
     goal: "Undo changes by moving HEAD and branch ref to a past commit.",
     conceptTerm: "Reset",
     conceptMapping: {
@@ -662,6 +732,11 @@ export const chapters: Chapter[] = [
   {
     id: 14,
     title: "Revert",
+    detailedDescription: {
+      command: "git revert <commit-hash>",
+      purpose: "Safely undoes a past commit by creating a new commit with inverse changes.",
+      whatItDoes: "Calculates the exact inverse diff introduced by the targeted commit and applies that inverse patch onto current HEAD. Creates a new commit containing the inverted edits, preserving all previous history for team collaboration safety."
+    },
     goal: "Undo a commit by creating a new commit with inverse changes, preserving history.",
     conceptTerm: "Revert",
     conceptMapping: {
@@ -719,6 +794,11 @@ export const chapters: Chapter[] = [
   {
     id: 15,
     title: "Rebase",
+    detailedDescription: {
+      command: "git rebase <base-branch>",
+      purpose: "Re-applies your branch's commits on top of another branch for a clean, linear history.",
+      whatItDoes: "Saves your branch's unique commits as temporary patches, resets your branch pointer to the tip of <base-branch>, and re-applies each patch sequentially, generating brand-new commit objects with new hashes."
+    },
     goal: "Reapply commits from one branch on top of another.",
     conceptTerm: "Rebase",
     conceptMapping: {
@@ -759,6 +839,11 @@ export const chapters: Chapter[] = [
   {
     id: 16,
     title: "Cherry Pick",
+    detailedDescription: {
+      command: "git cherry-pick <commit-hash>",
+      purpose: "Copies a specific commit from another branch and applies it onto your active branch.",
+      whatItDoes: "Extracts the diff introduced by the target commit relative to its parent, applies that patch to your active workspace, and automatically creates a new commit object on your active branch with the original commit message."
+    },
     goal: "Apply the changes introduced by some existing commits onto the current branch.",
     conceptTerm: "Cherry Pick",
     conceptMapping: {
@@ -817,6 +902,11 @@ export const chapters: Chapter[] = [
   {
     id: 17,
     title: "Stash",
+    detailedDescription: {
+      command: "git stash",
+      purpose: "Shelves dirty uncommitted working directory and staged changes so you can switch tasks.",
+      whatItDoes: "Creates special dangling commit objects in '.git/refs/stash' capturing working tree and index state, then runs 'git reset --hard' to clean your workspace. 'git stash pop' re-applies those stored changes."
+    },
     goal: "Save changes in a dirty working directory to return to them later.",
     conceptTerm: "Stash",
     conceptMapping: {
@@ -859,6 +949,11 @@ export const chapters: Chapter[] = [
   {
     id: 18,
     title: "Team Collaboration",
+    detailedDescription: {
+      command: "git pull origin <branch>",
+      purpose: "Fetches latest updates from a remote repository and merges them into your active branch.",
+      whatItDoes: "Executes 'git fetch' to download new objects and update '.git/refs/remotes/origin/', followed immediately by running 'git merge origin/<branch>' into your current local branch."
+    },
     goal: "Coordinate changes with multiple team members.",
     conceptTerm: "Push, Pull & Merge",
     conceptMapping: {
@@ -902,6 +997,11 @@ export const chapters: Chapter[] = [
   {
     id: 19,
     title: "Pull Request",
+    detailedDescription: {
+      command: "Pull Request (PR / Merge Request)",
+      purpose: "Proposes branch changes to project maintainers for code review and automated testing.",
+      whatItDoes: "Opens a code review diff view on the remote host platform. Team members leave inline comments, run CI test pipelines, and upon approval, trigger a remote 'git merge' or 'git rebase' into the target branch."
+    },
     goal: "Propose changes to a shared repository and request review.",
     conceptTerm: "Pull Request",
     conceptMapping: {
@@ -938,6 +1038,11 @@ export const chapters: Chapter[] = [
   {
     id: 20,
     title: "Final Boss",
+    detailedDescription: {
+      command: "Full Workflow (branch, checkout, add, merge, push)",
+      purpose: "Combines branching, conflict resolution, rebasing, and pushing to fix complex repository states.",
+      whatItDoes: "Executes an end-to-end Git workflow: isolates repairs on a feature branch, stages and reconciles multi-file conflicts, aligns divergent branch histories, and synchronizes local and remote branch tracking refs."
+    },
     goal: "Perform complex operations: branch, stage, resolve conflict, rebase, and push to repair history.",
     conceptTerm: "Temporal / Kingdom Salvation",
     conceptMapping: {

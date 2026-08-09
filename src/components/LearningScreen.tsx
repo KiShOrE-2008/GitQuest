@@ -4,7 +4,7 @@ import { chapters } from '../data/chapters';
 import { GitTimeline } from './GitTimeline';
 import { Terminal } from './Terminal';
 import { StoryWorld } from './StoryWorld';
-import { Shield, Rocket, CheckSquare, ChevronRight } from 'lucide-react';
+import { Shield, Rocket, CheckSquare, ChevronRight, BookOpen } from 'lucide-react';
 
 export const LearningScreen: React.FC = () => {
   const { activeWorld, currentChapterIndex, gitState } = useGame();
@@ -146,6 +146,35 @@ export const LearningScreen: React.FC = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Command Deep-Dive Card */}
+              {currentChapter.detailedDescription && (
+                <div className={`p-3.5 rounded-2xl border backdrop-blur-md space-y-2.5 text-xs mt-3
+                  ${isKingdom ? 'bg-amber-950/20 border-amber-500/20' : 'bg-cyan-950/20 border-cyan-500/20'}
+                `}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <BookOpen size={14} className={isKingdom ? 'text-amber-400' : 'text-cyan-400'} />
+                      <span className="text-[10px] uppercase font-extrabold text-slate-300 tracking-wider">Command Deep-Dive</span>
+                    </div>
+                    <code className={`px-2 py-0.5 rounded text-[10px] font-bold font-mono bg-slate-900 border ${isKingdom ? 'border-amber-500/40 text-amber-300' : 'border-cyan-500/40 text-cyan-300'}`}>
+                      $ {currentChapter.detailedDescription.command}
+                    </code>
+                  </div>
+
+                  <div className="space-y-2 text-[11px] leading-relaxed">
+                    <div>
+                      <span className="text-slate-400 font-semibold block text-[9px] uppercase tracking-wider mb-0.5">Purpose:</span>
+                      <p className="text-slate-200 font-normal">{currentChapter.detailedDescription.purpose}</p>
+                    </div>
+
+                    <div className="border-t border-slate-800/60 pt-2">
+                      <span className="text-slate-400 font-semibold block text-[9px] uppercase tracking-wider mb-0.5">What it actually does under the hood:</span>
+                      <p className="text-slate-300 font-light leading-relaxed">{currentChapter.detailedDescription.whatItDoes}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
