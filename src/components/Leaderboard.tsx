@@ -1,23 +1,65 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useGame } from '../context/GameContext';
 import { Trophy, Medal, Search, Flame } from 'lucide-react';
+import { supabase } from '../lib/supabase';
+
+interface Contestant {
+  rank: number;
+  name: string;
+  role: string;
+  xp: number;
+  streak: number;
+  isSelf: boolean;
+}
 
 export const Leaderboard: React.FC = () => {
-  const { activeWorld, xp } = useGame();
+  const { activeWorld, xp, user } = useGame();
+  const [dbContestants, setDbContestants] = useState<Contestant[]>([]);
 
   const isKingdom = activeWorld === 'kingdom';
 
-  // Mock list of global contestants including user
-  const contestants = [
+  useEffect(() => {
+    const fetchLeaderboard = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .order('xp', { ascending: false })
+          .limit(20);
+
+        if (error || !data || data.length === 0) return;
+
+        const mapped: Contestant[] = data.map((item, idx) => ({
+          rank: idx + 1,
+          name: item.username || 'Anonymous',
+          role: item.college_name || (isKingdom ? 'Royal Historian' : 'Starfleet Operative'),
+          xp: item.xp || 0,
+          streak: item.streak || 0,
+          isSelf: user?.email ? item.email === user.email : false
+        }));
+
+        setDbContestants(mapped);
+      } catch (err) {
+        console.warn('Could not fetch Supabase leaderboard:', err);
+      }
+    };
+
+    fetchLeaderboard();
+  }, [user, isKingdom]);
+
+  // Default mock list merged if db is empty
+  const defaultContestants: Contestant[] = [
     { rank: 1, name: 'Lancelot_Git', role: 'Guild Master', xp: 2150, streak: 12, isSelf: false },
     { rank: 2, name: 'QuantumOperator', role: 'Time Architect', xp: 1950, streak: 8, isSelf: false },
-    { rank: 3, name: 'You (Operator)', role: isKingdom ? 'Royal Historian' : 'Starfleet Operative', xp: Math.max(xp, 400), streak: 5, isSelf: true },
+    { rank: 3, name: user?.username || 'You (Operator)', role: isKingdom ? 'Royal Historian' : 'Starfleet Operative', xp: Math.max(xp, 400), streak: 5, isSelf: true },
     { rank: 4, name: 'Ada_Brancher', role: 'Timeline Fixer', xp: 850, streak: 3, isSelf: false },
     { rank: 5, name: 'GitGud_Knight', role: 'Sentry Sentinel', xp: 620, streak: 2, isSelf: false },
     { rank: 6, name: 'Cosmo_Committer', role: 'Shuttle Pilot', xp: 350, streak: 0, isSelf: false },
-  ].sort((a, b) => b.xp - a.xp); // Sort by XP to make it real
+  ];
 
-  // Adjust rankings after sorting
+  const contestants = (dbContestants.length > 0 ? dbContestants : defaultContestants)
+    .sort((a, b) => b.xp - a.xp);
+
   contestants.forEach((c, idx) => {
     c.rank = idx + 1;
   });

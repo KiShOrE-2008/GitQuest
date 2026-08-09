@@ -9,7 +9,7 @@ interface AuthProps {
 }
 
 export const Auth: React.FC<AuthProps> = ({ onSuccess, onClose }) => {
-  const { login, loginCredentials, activeWorld } = useGame();
+  const { login, loginCredentials, loginOAuth, activeWorld } = useGame();
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -80,7 +80,7 @@ export const Auth: React.FC<AuthProps> = ({ onSuccess, onClose }) => {
 
     audio.playClick();
     setLoadingProvider('credentials');
-    setLoadingStepText(mode === 'signin' ? 'Verifying database credentials...' : 'Registering timeline credentials...');
+    setLoadingStepText(mode === 'signin' ? 'Verifying credentials with Supabase...' : 'Creating Supabase account...');
 
     try {
       const result = await loginCredentials(
@@ -100,42 +100,21 @@ export const Auth: React.FC<AuthProps> = ({ onSuccess, onClose }) => {
       }
     } catch {
       setLoadingProvider(null);
-      // loginCredentials auto-falls back to offline mode on network error, so treat as success
       onSuccess();
     }
   };
 
-  const handleOAuthLogin = (provider: 'google' | 'github') => {
+  const handleOAuthLogin = async (provider: 'google' | 'github') => {
     audio.playClick();
     setLoadingProvider(provider);
-    
-    // Custom metaphorical loading statements
-    const steps = provider === 'google' 
-      ? isKingdom 
-        ? ['Sending envoy to the Alliance Temple...', 'Auditing credentials scroll...', 'Welcome to GitVerse!']
-        : ['Linking sub-orbital satellites...', 'Authenticating biometric token...', 'Synchronizing logs...']
-      : isKingdom
-        ? ['Summoning Guild Architect messenger...', 'Retrieving library blueprints...', 'Unlocking repository maps...']
-        : ['Opening quantum shell to GitHub API...', 'Resolving divergent profiles...', 'TIMELINE STABILIZED!'];
+    setLoadingStepText(`Connecting to Supabase ${provider === 'google' ? 'Google' : 'GitHub'} OAuth...`);
 
-    let stepIdx = 0;
-    setLoadingStepText(steps[0]);
-
-    const interval = setInterval(() => {
-      stepIdx++;
-      if (stepIdx < steps.length) {
-        setLoadingStepText(steps[stepIdx]);
-      }
-    }, 600);
-
-    setTimeout(() => {
-      clearInterval(interval);
-      const name = provider === 'google' ? 'Solaris_Coder' : 'Octocat_Knight';
-      const mail = `${name.toLowerCase()}@${provider}.com`;
-      login(name, mail, provider);
+    const result = await loginOAuth(provider);
+    if (!result.success) {
       setLoadingProvider(null);
-      onSuccess();
-    }, 2000);
+      setError(result.errorMsg || `Authentication via ${provider} failed`);
+      audio.playError();
+    }
   };
 
   const handleDemoLogin = () => {

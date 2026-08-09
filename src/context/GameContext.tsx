@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { chapters } from '../data/chapters';
 import { audio } from '../utils/audio';
+import { supabase } from '../lib/supabase';
 
 export interface Commit {
   id: string;
@@ -34,6 +35,7 @@ interface GameContextType {
   user: { username: string; email: string; collegeName?: string; provider?: string } | null;
   login: (username: string, email: string, provider?: string, collegeName?: string) => void;
   loginCredentials: (email: string, password: string, isSignUp: boolean, username?: string, collegeName?: string) => Promise<{ success: boolean; errorMsg?: string }>;
+  loginOAuth: (provider: 'google' | 'github') => Promise<{ success: boolean; errorMsg?: string }>;
   logout: () => void;
   themeMode: 'dark' | 'light';
   toggleThemeMode: () => void;
@@ -96,13 +98,8 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [gitState, setGitState] = useState<GitState>(INITIAL_GIT_STATE);
   const missionCompleteTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Load state from localStorage on init
+  // Load state from localStorage & listen to Supabase Auth state
   useEffect(() => {
-    const savedUser = localStorage.getItem('gitverse_user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-      setIsLoggedIn(true);
-    }
     const savedWorld = localStorage.getItem('gitverse_world');
     if (savedWorld === 'kingdom' || savedWorld === 'space') {
       setActiveWorld(savedWorld);
@@ -134,6 +131,79 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const idx = parseInt(savedChapter);
       setCurrentChapterIndexState(idx);
     }
+
+    // Subscribe to Supabase Auth session changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (session?.user) {
+        const email = session.user.email || '';
+        const meta = session.user.user_metadata || {};
+        const provider = session.user.app_metadata?.provider || 'supabase';
+        const username = meta.username || email.split('@')[0] || 'Player';
+        const collegeName = meta.collegeName || '';
+
+        setUser({ username, email, collegeName, provider });
+        setIsLoggedIn(true);
+
+        // Fetch user profile from Supabase 'profiles' table
+        try {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+
+          if (profile) {
+            setUser(prev => prev ? { 
+              ...prev, 
+              username: profile.username || prev.username, 
+              collegeName: profile.college_name || prev.collegeName 
+            } : { 
+              username: profile.username || username, 
+              email, 
+              collegeName: profile.college_name || collegeName, 
+              provider 
+            });
+
+            if (profile.xp !== undefined && profile.xp !== null) {
+              setXp(profile.xp);
+              localStorage.setItem('gitverse_xp', profile.xp.toString());
+            }
+            if (profile.level !== undefined && profile.level !== null) {
+              setLevel(profile.level);
+              localStorage.setItem('gitverse_level', profile.level.toString());
+            }
+            if (profile.streak !== undefined && profile.streak !== null) {
+              setStreak(profile.streak);
+              localStorage.setItem('gitverse_streak', profile.streak.toString());
+            }
+            if (profile.completed_chapters) {
+              setCompletedChapters(profile.completed_chapters);
+              localStorage.setItem('gitverse_completed_chapters', JSON.stringify(profile.completed_chapters));
+            }
+            if (profile.achievements) {
+              setAchievements(profile.achievements);
+              localStorage.setItem('gitverse_achievements', JSON.stringify(profile.achievements));
+            }
+            if (profile.active_world) {
+              setActiveWorld(profile.active_world);
+              localStorage.setItem('gitverse_world', profile.active_world);
+            }
+          }
+        } catch (err) {
+          console.warn('Could not fetch Supabase profile:', err);
+        }
+      } else {
+        const savedUser = localStorage.getItem('gitverse_user');
+        if (savedUser) {
+          setUser(JSON.parse(savedUser));
+          setIsLoggedIn(true);
+        }
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   // Sync themeMode to documentElement HTML root class list
@@ -147,22 +217,25 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [themeMode]);
 
-  const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://127.0.0.1:5000/api' : '/api');
-
   const syncProgressToDb = async (updatedData: any) => {
-    const token = localStorage.getItem('gitverse_token');
-    if (!token) return;
     try {
-      await fetch(`${API_URL}/auth/sync`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(updatedData)
-      });
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
+
+      const payload: any = {};
+      if (updatedData.xp !== undefined) payload.xp = updatedData.xp;
+      if (updatedData.level !== undefined) payload.level = updatedData.level;
+      if (updatedData.streak !== undefined) payload.streak = updatedData.streak;
+      if (updatedData.completedChapters !== undefined) payload.completed_chapters = updatedData.completedChapters;
+      if (updatedData.achievements !== undefined) payload.achievements = updatedData.achievements;
+      if (updatedData.activeWorld !== undefined) payload.active_world = updatedData.activeWorld;
+      if (updatedData.collegeName !== undefined) payload.college_name = updatedData.collegeName;
+      if (updatedData.username !== undefined) payload.username = updatedData.username;
+      payload.updated_at = new Date().toISOString();
+
+      await supabase.from('profiles').update(payload).eq('id', session.user.id);
     } catch (err) {
-      console.warn('MongoDB sync offline, updating locally:', err);
+      console.warn('Supabase sync warning:', err);
     }
   };
 
@@ -218,76 +291,96 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     audio.playClick();
   };
 
-  const loginCredentials = async (email: string, password: string, isSignUp: boolean, username?: string, collegeName?: string): Promise<{ success: boolean; errorMsg?: string }> => {
+  const loginCredentials = async (
+    email: string, 
+    password: string, 
+    isSignUp: boolean, 
+    username?: string, 
+    collegeName?: string
+  ): Promise<{ success: boolean; errorMsg?: string }> => {
     try {
-      const endpoint = isSignUp ? '/auth/signup' : '/auth/login';
-      const body = isSignUp ? { username, email, password, collegeName } : { email, password };
-      
-      const res = await fetch(`${API_URL}${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
-      const data = await res.json();
+      if (isSignUp) {
+        const { data, error } = await supabase.auth.signUp({
+          email: email.trim(),
+          password,
+          options: {
+            data: {
+              username: username || email.split('@')[0],
+              collegeName: collegeName || ''
+            }
+          }
+        });
+        if (error) return { success: false, errorMsg: error.message };
 
-      if (!res.ok) {
-        return { success: false, errorMsg: data.error || 'Authentication failed' };
-      }
+        if (data.user) {
+          // Upsert profile in Supabase table
+          await supabase.from('profiles').upsert({
+            id: data.user.id,
+            username: username || email.split('@')[0],
+            email: email.trim(),
+            college_name: collegeName || '',
+            provider: 'supabase'
+          });
 
-      localStorage.setItem('gitverse_token', data.token);
-      localStorage.setItem('gitverse_user', JSON.stringify({
-        username: data.user.username,
-        email: data.user.email,
-        collegeName: data.user.collegeName,
-        provider: data.user.provider
-      }));
-
-      setUser({
-        username: data.user.username,
-        email: data.user.email,
-        collegeName: data.user.collegeName,
-        provider: data.user.provider
-      });
-      setIsLoggedIn(true);
-
-      setXp(data.user.xp);
-      setLevel(data.user.level);
-      setStreak(data.user.streak);
-      setCompletedChapters(data.user.completedChapters || []);
-      setAchievements(data.user.achievements || []);
-      
-      const completedIds: number[] = data.user.completedChapters || [];
-      // Find the first chapter index not yet completed
-      const nextCh = (() => {
-        for (let i = 0; i < chapters.length; i++) {
-          if (!completedIds.includes(chapters[i].id)) return i;
+          setUser({
+            username: username || email.split('@')[0],
+            email: email.trim(),
+            collegeName: collegeName || '',
+            provider: 'supabase'
+          });
+          setIsLoggedIn(true);
         }
-        return chapters.length - 1; // All complete — stay on last
-      })();
-      setCurrentChapterIndexState(nextCh);
+        return { success: true };
+      } else {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password
+        });
+        if (error) return { success: false, errorMsg: error.message };
 
-      localStorage.setItem('gitverse_xp', data.user.xp.toString());
-      localStorage.setItem('gitverse_level', data.user.level.toString());
-      localStorage.setItem('gitverse_streak', data.user.streak.toString());
-      localStorage.setItem('gitverse_completed_chapters', JSON.stringify(data.user.completedChapters || []));
-      localStorage.setItem('gitverse_achievements', JSON.stringify(data.user.achievements || []));
-      localStorage.setItem('gitverse_current_chapter', nextCh.toString());
+        if (data.user) {
+          const uName = data.user.user_metadata?.username || email.split('@')[0];
+          const colName = data.user.user_metadata?.collegeName || '';
 
-      setTimeout(() => resetGitStateForChapter(nextCh), 100);
-      return { success: true };
-    } catch (err) {
-      console.warn('Backend server offline, logging in as temporary local profile:', err);
-      const fallbackUser = username || email.split('@')[0];
-      login(fallbackUser, email, 'local-offline', collegeName);
-      return { success: true };
+          setUser({
+            username: uName,
+            email: email.trim(),
+            collegeName: colName,
+            provider: 'supabase'
+          });
+          setIsLoggedIn(true);
+        }
+        return { success: true };
+      }
+    } catch (err: any) {
+      return { success: false, errorMsg: err.message || 'Authentication failed' };
     }
   };
 
-  const logout = () => {
+  const loginOAuth = async (provider: 'google' | 'github'): Promise<{ success: boolean; errorMsg?: string }> => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: window.location.origin
+        }
+      });
+      if (error) return { success: false, errorMsg: error.message };
+      return { success: true };
+    } catch (err: any) {
+      return { success: false, errorMsg: err.message || 'OAuth authentication failed' };
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (e) {
+      console.warn('SignOut warning:', e);
+    }
     setUser(null);
     setIsLoggedIn(false);
     
-    // Clear all storage elements for clean development testing
     localStorage.removeItem('gitverse_user');
     localStorage.removeItem('gitverse_token');
     localStorage.removeItem('gitverse_xp');
@@ -297,7 +390,6 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.removeItem('gitverse_achievements');
     localStorage.removeItem('gitverse_current_chapter');
 
-    // Reset local state references
     setXp(0);
     setLevel(1);
     setStreak(1);
@@ -885,6 +977,7 @@ export const GameProvider: React.FC<{ children: React.ReactNode }> = ({ children
       user,
       login,
       loginCredentials,
+      loginOAuth,
       logout
     }}>
       {children}

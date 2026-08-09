@@ -4,8 +4,7 @@
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=flat-square&logo=react&logoColor=black)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-6.0-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-3.4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
-[![Express](https://img.shields.io/badge/Express-4.x-000000?style=flat-square&logo=express&logoColor=white)](https://expressjs.com/)
-[![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=flat-square&logo=mongodb&logoColor=white)](https://www.mongodb.com/atlas)
+[![Supabase](https://img.shields.io/badge/Supabase-Auth_%26_PostgreSQL-3ECF8E?style=flat-square&logo=supabase&logoColor=white)](https://supabase.com)
 
 **GitQuest** is an immersive, gamified web application that teaches version control and Git through interactive storytelling, animated visual worlds, live commit graph visualization, a real simulated terminal — and an AI-powered Git tutor chatbot — all in one screen.
 
@@ -68,16 +67,6 @@ Each of the 20 chapters has a dedicated animated scene in **Kingdom** and **Spac
 - **Active** — Objects animate in response to executed commands
 - **Complete** — Victory stamp + "What Just Happened?" 3-step reveal (shown after animation finishes)
 
-**Animation domains:**
-
-| Domain | Chapters | Complexity | Techniques |
-|---|---|---|---|
-| 🟢 Foundations | 1–5 | Basic | Fade, slide, stamp, glow ring |
-| 🟡 Branching | 6–9 | Intermediate | SVG path split, portal, conflict shake |
-| 🟡 Remotes | 10–12 | Intermediate | Messenger travel, clone, fork split |
-| 🔴 History | 13–17 | Advanced | Rewind flash, SVG reorder, cherry-pick, vault |
-| 🟣 Boss | 18–20 | Boss | Multi-source convergence, 5-branch repair |
-
 ---
 
 ### 💻 3. Simulated Git Terminal Shell
@@ -91,10 +80,6 @@ git clone     git remote    git reset     git revert    git rebase
 git cherry-pick   git stash   git fetch   git diff      git tag
 ```
 
-- Instant colored terminal feedback
-- `✓ Task complete` and `✗ Error` ANSI-style output
-- `help` and `clear` meta-commands built in
-
 ---
 
 ### 🤖 4. GitGuide — AI Chatbot Tutor
@@ -104,17 +89,6 @@ A floating, world-themed Git tutor chatbot always available during gameplay:
 - **Context-aware** — knows your current chapter and active world theme
 - **Chapter hints** — type "hint" to get the exact command needed for your current mission
 - **Git knowledge base** — explains all 20+ Git commands with examples
-- **Quick reply chips** — one-tap access to common questions
-- **Comparisons** — reset vs revert, merge vs rebase, fetch vs pull explained clearly
-- **Typing indicator** — animated dots for a real AI feel
-- **Unread badge** — notification dot when bot replies while chat is closed
-
-Ask it things like:
-- *"Hint for this chapter"*
-- *"What is git rebase?"*
-- *"Reset vs revert?"*
-- *"How does branching work?"*
-- *"What commands are available?"*
 
 ---
 
@@ -145,36 +119,17 @@ Progressive curriculum from absolute beginner to advanced Git user:
 - **XP & Level Progression** — Earn 100–200 XP per chapter, level up every 300 XP
 - **Daily Streak Tracker** — Animated flame counter for active sessions
 - **Achievement Badges** — *First Commit* · *Branch Explorer* · *Merge Master* · *Conflict Resolver* · *Git Hero*
-- **Global Leaderboard** — Live player rankings by XP, level, and institute
+- **Global Leaderboard** — Live player rankings powered by Supabase PostgreSQL
 - **Git Skillset Radar** — Competency chart across all 6 Git domains
-- **Mission Accomplished Overlay** — Delayed reveal after completion animation fully plays
 
 ---
 
-### 🔐 8. Auth & Account System
+### 🔐 8. Supabase Auth & Cloud Database
 
-- **Email/Password sign-up and login** with full client-side validation
-  - Email format validation with real-time feedback
-  - Password strength checklist (8+ chars, uppercase, lowercase, number, special char)
-  - Confirm password match indicator
-  - Submit button disabled during loading to prevent duplicate requests
-  - Password show/hide toggle
-  - `autoComplete` attributes for password manager support
-- **OAuth simulation** — Google and GitHub social login flows
+- **Email/Password sign-up and login** via Supabase Auth
+- **Native Social OAuth** — Google and GitHub login
+- **Cloud Progress Persistence** — Automatically syncs XP, level, streak, completed chapters, and achievements to Supabase `profiles` table guarded by Row Level Security (RLS)
 - **Demo Sandbox Mode** — Instant access without registration
-- **Offline fallback** — Works without backend; auto falls back to local profile
-- **Cloud sync** — Progress persists to MongoDB via Express API when backend is available
-- **JWT authentication** — 7-day token with `Authorization: Bearer` header
-
----
-
-### 🎨 9. UI Design System
-
-- **Dark / Light Mode** — Full theme switch, persisted to localStorage
-- **Glassmorphism Panels** — Backdrop blur, ambient glow spotlights
-- **Responsive Layout** — Mobile tab switcher (Story | Timeline | Terminal), 3-panel desktop view
-- **Custom Animations** — 16 `@keyframes`: `float-up`, `stamp-in`, `draw-path`, `rewind-flash`, `merge-converge`, `cherry-pop`, `vault-close`, `conflict-shake`, `chat-in`, `typing`, and more
-- **Sound System** — Web Audio API synthesized key press, click, error, and victory sounds
 
 ---
 
@@ -185,10 +140,8 @@ Progressive curriculum from absolute beginner to advanced Git user:
 | **Frontend** | React 19, TypeScript 6, Vite 8 |
 | **Styling** | Tailwind CSS 3.4, Vanilla CSS, custom `@keyframes` |
 | **Icons** | Lucide React |
-| **Animations** | CSS keyframes + SVG `stroke-dashoffset` |
+| **Auth & DB** | Supabase Auth, Supabase PostgreSQL (RLS) |
 | **Audio** | Web Audio API (synthesized sound effects) |
-| **Backend** | Node.js, Express 4, MongoDB Atlas, Mongoose |
-| **Auth** | JWT (jsonwebtoken), bcryptjs |
 
 ---
 
@@ -198,15 +151,21 @@ Progressive curriculum from absolute beginner to advanced Git user:
 - Node.js v18+
 - npm
 
-### Frontend Setup
+### Setup
 
 ```bash
 # Clone the repository
 git clone https://github.com/KiShOrE-2008/GitQuest.git
 cd GitQuest
 
-# Install frontend dependencies
+# Install dependencies
 npm install
+
+# Configure environment
+cp .env.example .env
+# Edit .env:
+#   VITE_SUPABASE_URL=https://<your-project>.supabase.co
+#   VITE_SUPABASE_ANON_KEY=<your-anon-key>
 
 # Start development server
 npm run dev
@@ -216,28 +175,6 @@ npm run dev
 npm run build
 ```
 
-### Backend Setup (optional — for cloud sync & auth persistence)
-
-```bash
-cd server
-
-# Install backend dependencies
-npm install
-
-# Configure environment
-cp .env.example .env
-# Edit .env:
-#   MONGODB_URI=mongodb+srv://<user>:<pass>@<cluster>.mongodb.net/gitverse
-#   JWT_SECRET=your_secret_key
-#   PORT=5000
-
-# Start server
-npm run dev   # with nodemon (hot reload)
-npm start     # production
-```
-
-> Without the backend, the app works fully in **offline mode** — progress is stored in `localStorage`.
-
 ---
 
 ## 📁 Project Structure
@@ -245,32 +182,20 @@ npm start     # production
 ```
 GitQuest/
 ├── public/
-├── server/                         # Optional Express auth + sync API
-│   ├── models/
-│   │   └── User.js                 # Mongoose user schema
-│   ├── routes/
-│   │   └── auth.js                 # /signup /login /sync endpoints
-│   ├── server.js                   # Express app entry point
-│   └── .env                        # MongoDB URI + JWT secret
 └── src/
     ├── components/
     │   ├── scenes/                  # Story World animation scenes (per chapter)
-    │   │   ├── SceneFoundations.tsx # Ch 1–5
-    │   │   ├── SceneBranching.tsx   # Ch 6–9
-    │   │   ├── SceneRemotes.tsx     # Ch 10–12
-    │   │   ├── SceneHistory.tsx     # Ch 13–17
-    │   │   └── SceneCollabFinal.tsx # Ch 18–20
     │   ├── Achievements.tsx
-    │   ├── Auth.tsx                 # Sign in / Sign up with validation
+    │   ├── Auth.tsx                 # Supabase Auth sign-up / login modal
     │   ├── ChatBot.tsx              # 🤖 GitGuide floating AI chatbot
     │   ├── Dashboard.tsx            # Curriculum roadmap (Learn Map)
     │   ├── EditProfile.tsx
     │   ├── GitTimeline.tsx          # SVG commit visualization
     │   ├── Home.tsx                 # Command center overview dashboard
     │   ├── LandingPage.tsx
-    │   ├── Leaderboard.tsx
+    │   ├── Leaderboard.tsx          # Live Supabase leaderboard
     │   ├── LearningScreen.tsx       # 3-layer mission screen layout
-    │   ├── MissionComplete.tsx      # Completion overlay (delayed reveal)
+    │   ├── MissionComplete.tsx      # Completion overlay
     │   ├── MobileNavBar.tsx
     │   ├── Navbar.tsx
     │   ├── Profile.tsx
@@ -280,7 +205,9 @@ GitQuest/
     │   ├── Terminal.tsx             # Simulated Git terminal shell
     │   └── WorldSelection.tsx
     ├── context/
-    │   └── GameContext.tsx          # Central game state, Git simulator, auth logic
+    │   └── GameContext.tsx          # Game state & Supabase auth/sync logic
+    ├── lib/
+    │   └── supabase.ts              # Supabase client singleton
     ├── data/
     │   └── chapters.ts             # 20-chapter mission data + validation steps
     ├── utils/
@@ -289,17 +216,6 @@ GitQuest/
     ├── index.css                   # Tailwind base + 16 custom @keyframes
     └── main.tsx
 ```
-
----
-
-## 🔌 API Endpoints
-
-| Method | Endpoint | Description |
-|---|---|---|
-| `POST` | `/api/auth/signup` | Register new user with hashed password |
-| `POST` | `/api/auth/login` | Authenticate and receive JWT token |
-| `POST` | `/api/auth/sync` | Sync XP, level, streak, chapters (JWT required) |
-| `GET` | `/api/health` | Server + database status check |
 
 ---
 
