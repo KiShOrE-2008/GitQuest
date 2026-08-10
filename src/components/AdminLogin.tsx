@@ -241,9 +241,18 @@ export const AdminLogin: React.FC<AdminLoginProps> = ({ onSuccess, onBack }) => 
 
             {/* Error Message */}
             {error && (
-              <div className="flex items-start gap-2 bg-red-500/10 border border-red-500/30 rounded-xl p-3 text-xs text-red-300">
-                <AlertTriangle size={14} className="mt-0.5 shrink-0" />
-                <span>{error}</span>
+              <div className="space-y-2">
+                <div className="flex items-start gap-2 bg-red-500/10 border border-red-500/30 rounded-xl p-3 text-xs text-red-300">
+                  <AlertTriangle size={14} className="mt-0.5 shrink-0" />
+                  <div>
+                    <span>{error}</span>
+                    {error.toLowerCase().includes('email not confirmed') && (
+                      <p className="mt-2 text-[11px] text-amber-300 font-normal leading-relaxed border-t border-red-500/20 pt-2">
+                        💡 <strong>How to confirm:</strong> In your Supabase Dashboard → <strong>Authentication</strong> → <strong>Users</strong>, find <code className="text-white bg-slate-900 px-1 py-0.5 rounded font-mono">admin@gitquest.com</code>, click the <strong>...</strong> menu on the right, and select <strong>Confirm email</strong> (or disable "Confirm email" in Auth Settings).
+                      </p>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
 
