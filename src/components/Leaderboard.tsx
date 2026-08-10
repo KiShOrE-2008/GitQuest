@@ -26,8 +26,9 @@ export const Leaderboard: React.FC = () => {
         const { data, error } = await supabase
           .from('profiles')
           .select('*')
+          .eq('is_admin', false)
           .order('xp', { ascending: false })
-          .limit(20);
+          .limit(50);
 
         if (error || !data) return;
 
@@ -37,7 +38,7 @@ export const Leaderboard: React.FC = () => {
           name: item.username || item.email?.split('@')[0] || 'Anonymous',
           role: item.college_name || (isKingdom ? 'Royal Historian' : 'Starfleet Operative'),
           xp: item.xp ?? 0,
-          streak: item.streak ?? 1,
+          streak: item.streak ?? 0,
           isSelf: user?.email ? item.email?.toLowerCase() === user.email.toLowerCase() : false
         }));
 
@@ -48,51 +49,23 @@ export const Leaderboard: React.FC = () => {
     };
 
     fetchLeaderboard();
-  }, [user, xp, streak, isKingdom]);
+  }, [user, isKingdom]);
 
-  // Default bot contestants to ensure a full, competitive leaderboard experience
-  const botContestants: Contestant[] = [
-    { rank: 1, name: 'Lancelot_Git', role: 'Guild Master', xp: 2150, streak: 14, isSelf: false },
-    { rank: 2, name: 'QuantumOperator', role: 'Time Architect', xp: 1850, streak: 9, isSelf: false },
-    { rank: 3, name: 'Ada_Brancher', role: 'Timeline Fixer', xp: 1200, streak: 6, isSelf: false },
-    { rank: 4, name: 'GitGud_Knight', role: 'Sentry Sentinel', xp: 620, streak: 3, isSelf: false },
-    { rank: 5, name: 'Cosmo_Committer', role: 'Shuttle Pilot', xp: 350, streak: 2, isSelf: false },
-  ];
+  // Build the list from DB data only
+  let combinedList: Contestant[] = [...dbContestants];
 
-  // Self user object constructed from current live context state
-  const selfContestant: Contestant = {
-    rank: 0,
-    name: user?.username || 'You (Operator)',
-    role: user?.collegeName || (isKingdom ? 'Royal Historian' : 'Starfleet Operative'),
-    xp: xp,
-    streak: streak,
-    isSelf: true
-  };
-
-  // Build combined list
-  let combinedList: Contestant[] = [];
-
-  if (dbContestants.length > 0) {
-    // If DB has records, use DB profiles
-    combinedList = [...dbContestants];
-    // If self user is not found in DB list (e.g. newly signed up or guest), insert self user
-    const hasSelfInDb = combinedList.some(c => c.isSelf);
-    if (!hasSelfInDb) {
-      combinedList.push(selfContestant);
-    } else {
-      // Ensure self profile in DB list displays live local state if fresher
-      combinedList = combinedList.map(c => c.isSelf ? { ...c, xp: Math.max(c.xp, xp), streak: Math.max(c.streak, streak), name: user?.username || c.name } : c);
-    }
-    // Fill up with bot contestants if DB has fewer than 5 rows
-    botContestants.forEach(bot => {
-      if (combinedList.length < 6 && !combinedList.some(c => c.name === bot.name)) {
-        combinedList.push(bot);
-      }
-    });
-  } else {
-    // If DB is offline or empty, use bot contestants + self user
-    const filteredBots = botContestants.filter(b => b.name !== selfContestant.name);
-    combinedList = [selfContestant, ...filteredBots];
+  // If self user is not found in DB list (guest/demo user), add them with local state
+  const hasSelfInDb = combinedList.some(c => c.isSelf);
+  if (!hasSelfInDb && user) {
+    const selfContestant: Contestant = {
+      rank: 0,
+      name: user.username || 'You (Operator)',
+      role: user.collegeName || (isKingdom ? 'Royal Historian' : 'Starfleet Operative'),
+      xp: xp,
+      streak: streak,
+      isSelf: true
+    };
+    combinedList.push(selfContestant);
   }
 
   // Sort by XP descending
@@ -110,6 +83,8 @@ export const Leaderboard: React.FC = () => {
   );
 
   const selfRank = combinedList.find(c => c.isSelf)?.rank || 1;
+  const selfStreak = combinedList.find(c => c.isSelf)?.streak ?? streak;
+
 
   return (
     <div className="space-y-8 max-w-4xl mx-auto pb-12">
@@ -140,7 +115,7 @@ export const Leaderboard: React.FC = () => {
           <div className="text-right">
             <span className="text-[10px] uppercase font-bold text-slate-500 block leading-tight">Your Streak</span>
             <div className="flex items-center gap-1 justify-end text-orange-400 font-black text-lg">
-              <Flame size={16} className="fill-orange-400/20" /> {streak} {streak === 1 ? 'day' : 'days'}
+              <Flame size={16} className="fill-orange-400/20" /> {selfStreak} {selfStreak === 1 ? 'day' : 'days'}
             </div>
           </div>
           <div className="text-right border-l border-slate-800 pl-6">

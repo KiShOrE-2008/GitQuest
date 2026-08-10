@@ -14,9 +14,25 @@ import { Settings } from './components/Settings';
 import { MissionComplete } from './components/MissionComplete';
 import { MobileNavBar } from './components/MobileNavBar';
 import { ChatBot } from './components/ChatBot';
+import { AdminLogin } from './components/AdminLogin';
+import { AdminDashboard } from './components/AdminDashboard';
 
 import { Home } from './components/Home';
 import { EditProfile } from './components/EditProfile';
+
+function AdminPanel() {
+  const [adminSession, setAdminSession] = useState<any>(null);
+
+  const handleBack = () => {
+    window.location.hash = '';
+  };
+
+  if (!adminSession) {
+    return <AdminLogin onSuccess={(session) => setAdminSession(session)} onBack={handleBack} />;
+  }
+
+  return <AdminDashboard onLogout={() => setAdminSession(null)} />;
+}
 
 function AppContent() {
   const [view, setView] = useState<'landing' | 'auth' | 'selection' | 'game'>('landing');
@@ -133,6 +149,19 @@ function AppContent() {
 }
 
 export default function App() {
+  const [hash, setHash] = useState(window.location.hash);
+
+  useEffect(() => {
+    const onHashChange = () => setHash(window.location.hash);
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
+
+  // Admin route — renders outside GameProvider
+  if (hash === '#admin' || hash === '#/admin') {
+    return <AdminPanel />;
+  }
+
   return (
     <GameProvider>
       <AppContent />
